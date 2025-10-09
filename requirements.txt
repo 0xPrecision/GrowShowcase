@@ -1,0 +1,15 @@
+aiogram
+fastapi
+uvicorn[standard]
+httpx
+aerich
+python-dotenv
+tortoise-orm
+aiosqlite
+SQLAlchemy
+asyncpg
+stripe
+PyYAML
+ruff
+black
+isort
