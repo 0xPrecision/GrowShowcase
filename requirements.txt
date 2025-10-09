@@ -8,6 +8,7 @@ tortoise-orm
 aiosqlite
 SQLAlchemy
 redis
+gunicorn
 asyncpg
 stripe
 PyYAML
