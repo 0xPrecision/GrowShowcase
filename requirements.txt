@@ -7,6 +7,7 @@ python-dotenv
 tortoise-orm
 aiosqlite
 SQLAlchemy
+redis
 asyncpg
 stripe
 PyYAML
