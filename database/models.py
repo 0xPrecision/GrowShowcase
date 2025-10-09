@@ -83,7 +83,7 @@ class Order(Model):
     # txid = fields.CharField(128, null=True)
     # meta = fields.JSONField(null=True)
     # created_at = fields.DatetimeField(auto_now_add=True)
-    updated_at = fields.DatetimeField(auto_now=True)
+    # updated_at = fields.DatetimeField(auto_now=True)
     # status = fields.CharField(max_length=32, default="In progress")
     # total_price = fields.DecimalField(max_digits=10, decimal_places=2, default=0)
     # amount_cents = fields.IntField(default=0)

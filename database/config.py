@@ -1,8 +1,10 @@
 import os
 
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/shop.db")
+
 TORTOISE_ORM = {
     "connections": {
-        "default": "sqlite://shop.db",
+        "default": DATABASE_URL,
     },
     "apps": {
         "models": {
@@ -14,4 +16,3 @@ TORTOISE_ORM = {
         },
     },
 }
-

@@ -15,11 +15,9 @@ from aiogram.fsm.storage.redis import RedisStorage
 from database.init_db import init_db, close_db
 from database.models import Order
 
-# Платежные гейтвеи (оставляю как у тебя)
 from payments.cryptomus_gateway import CryptomusGateway
 from payments.stripe_gateway import StripeGateway
 
-# i18n и локали (как в твоем main.py)
 from services.i18n.middleware import LocaleMiddleware
 from services.i18n.translations import Translator
 from services.locale_repo import LocaleRepo
@@ -34,26 +32,29 @@ log = logging.getLogger("web")
 # -------------------------
 # ENV
 # -------------------------
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN is not set")
+    raise RuntimeError("BOT_TOKEN is not set")
 
 WEBHOOK_BASE = os.getenv("TELEGRAM_WEBHOOK_URL")  # например: https://bot.example.com
-if not WEBHOOK_BASE:
-    raise RuntimeError("TELEGRAM_WEBHOOK_URL is not set")
+if not WEBHOOK_BASE or not WEBHOOK_BASE.startswith(("https://", "http://")):
+    raise RuntimeError("TELEGRAM_WEBHOOK_URL must be an absolute URL with scheme (https://...)")
 
-WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")  # желательно задать
+WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET")
+if not WEBHOOK_SECRET:
+    # В проде секрет обязателен
+    raise RuntimeError("TELEGRAM_WEBHOOK_SECRET is not set")
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
-# Путь вебхука делаем «секретным» через сегмент пути
-TELEGRAM_PATH_SEGMENT = WEBHOOK_SECRET if WEBHOOK_SECRET else "telegram"
+# Секретный сегмент пути обязателен в проде
+TELEGRAM_PATH_SEGMENT = WEBHOOK_SECRET
 TELEGRAM_WEBHOOK_PATH = f"/webhook/telegram/{TELEGRAM_PATH_SEGMENT}"
 TELEGRAM_WEBHOOK_URL = WEBHOOK_BASE.rstrip("/") + TELEGRAM_WEBHOOK_PATH
 
 # -------------------------
 # Bot / Dispatcher
 # -------------------------
-# parse_mode можно убрать, если тебе не нужен HTML
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 storage = RedisStorage.from_url(REDIS_URL)
 dp = Dispatcher(storage=storage)
@@ -87,13 +88,14 @@ except Exception as e:
 async def lifespan(app: FastAPI):
     # Инициализация БД
     await init_db()
-    # Установка вебхука
+
+    # Установка вебхука (идемпотентно, просто перезапишет)
     try:
         await bot.set_webhook(
             url=TELEGRAM_WEBHOOK_URL,
-            secret_token=WEBHOOK_SECRET or None,  # Телега будет слать заголовок X-Telegram-Bot-Api-Secret-Token
+            secret_token=WEBHOOK_SECRET,  # Телега пришлет X-Telegram-Bot-Api-Secret-Token
             drop_pending_updates=True,
-            allowed_updates=["message", "edited_message", "callback_query", "chat_member", "my_chat_member"]
+            allowed_updates=["message", "edited_message", "callback_query", "chat_member", "my_chat_member"],
         )
         log.info("Webhook set to %s", TELEGRAM_WEBHOOK_URL)
     except Exception as e:
@@ -103,11 +105,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        # Снятие вебхука, закрытие БД и сессии бота
-        try:
-            await bot.delete_webhook(drop_pending_updates=False)
-        except Exception:
-            pass
+        # В проде вебхук не удаляем, чтобы не бить трафик на рестартах
         try:
             await close_db()
         finally:
@@ -134,14 +132,12 @@ async def root():
 # -------------------------
 def verify_telegram_secret(request: Request):
     """
-    Проверяем заголовок X-Telegram-Bot-Api-Secret-Token, если секрет задан.
-    Плюс контролируем сегмент пути ( TELEGRAM_PATH_SEGMENT ).
+    Проверяем заголовок X-Telegram-Bot-Api-Secret-Token и секретный сегмент пути.
     """
-    if WEBHOOK_SECRET:
-        header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-        if header != WEBHOOK_SECRET:
-            # Лишние подробности злоумышленникам не нужны
-            raise HTTPException(status_code=403, detail="forbidden")
+    header = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
+    if header != WEBHOOK_SECRET:
+        # Меньше информации злоумышленнику
+        raise HTTPException(status_code=403, detail="forbidden")
     return True
 
 @app.post(TELEGRAM_WEBHOOK_PATH)
@@ -168,7 +164,7 @@ async def webhook_stripe(request: Request):
         event = gw.parse_webhook(payload, sig)
     except Exception as e:
         log.warning("Stripe signature/parse error: %s", e)
-        raise HTTPException(400, str(e))
+        raise HTTPException(400, "bad signature")
 
     data = StripeGateway.extract_success(event)
     if data and data.get("order_id"):
@@ -186,7 +182,6 @@ async def webhook_stripe(request: Request):
                 await order.save()
         except Exception as e:
             log.exception("Stripe order update error: %s", e)
-            # Не падаем, чтобы не ловить бесконечные ретраи
             return JSONResponse({"ok": True})
 
     return JSONResponse({"ok": True})
@@ -201,8 +196,8 @@ async def webhook_cryptomus(request: Request):
     gw = CryptomusGateway()
     try:
         body = gw.verify_webhook(raw, signature)
-    except Exception as e:
-        log.warning("Cryptomus signature error: %s", e)
+    except Exception:
+        log.warning("Cryptomus signature error")
         raise HTTPException(400, "bad signature")
 
     data = CryptomusGateway.extract_success(body)
@@ -221,6 +216,7 @@ async def webhook_cryptomus(request: Request):
             return JSONResponse({"ok": True})
 
     return JSONResponse({"ok": True})
+
 
 
 

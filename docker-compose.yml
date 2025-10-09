@@ -1,29 +1,74 @@
 version: "3.9"
 
+x-app-env: &app_env
+  env_file:
+    - .env
+  volumes:
+    - app_data:/data
+  restart: unless-stopped
+
 services:
-  web:
-    build:
-      context: .
-    command: uvicorn web.main:app --host 0.0.0.0 --port ${PORT:-8000}
-    env_file: .env
-    ports:
-      - "80:${PORT:-8000}"
-    volumes:
-      - app_data:/data
+  # Одноразовый контейнер: применяет миграции и выходит
+  aerich:
+    build: .
+    <<: *app_env
+    command: bash -lc "aerich upgrade"
     depends_on:
-      - bot
-    restart: unless-stopped
+      redis:
+        condition: service_started
+    # пусть падает, если миграции не прошли – это сигнал
+
+  web:
+    build: .
+    <<: *app_env
+    # gunicorn стабильнее для прод, чем голый uvicorn
+    command: bash -lc "gunicorn -k uvicorn.workers.UvicornWorker -w ${WEB_WORKERS:-2} -b 0.0.0.0:8000 web.main:app"
+    expose:
+      - "8000"
+    ports:
+      - "80:8000"
+    depends_on:
+      aerich:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
 
   bot:
-    build:
-      context: .
-    # если у тебя точка входа другая – поменяй
-    command: python -m main
-    env_file: .env
+    build: .
+    <<: *app_env
+    command: bash -lc "python -m main"
+    depends_on:
+      aerich:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.settimeout(2); s.connect((\"redis\", 6379))'"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
     volumes:
-      - app_data:/data
+      - redis_data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
 volumes:
   app_data:
+  redis_data:
+
 
