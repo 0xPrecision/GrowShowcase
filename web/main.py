@@ -4,6 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from aiogram.client.default import DefaultBotProperties
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, PlainTextResponse
 
@@ -53,7 +54,7 @@ TELEGRAM_WEBHOOK_URL = WEBHOOK_BASE.rstrip("/") + TELEGRAM_WEBHOOK_PATH
 # Bot / Dispatcher
 # -------------------------
 # parse_mode можно убрать, если тебе не нужен HTML
-bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 storage = RedisStorage.from_url(REDIS_URL)
 dp = Dispatcher(storage=storage)
 
