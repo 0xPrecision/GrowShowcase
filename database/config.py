@@ -1,10 +1,8 @@
 import os
 
-DB_URL = os.getenv("DB_URL", "sqlite+aiosqlite:////data/shop.db")
-
 TORTOISE_ORM = {
     "connections": {
-        "default": DB_URL,
+        "default": "sqlite://shop.db",
     },
     "apps": {
         "models": {
