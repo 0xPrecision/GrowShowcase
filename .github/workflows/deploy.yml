@@ -1,0 +1,41 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out (optional)
+        uses: actions/checkout@v4
+
+      - name: "Sanity: SSH smoke test"
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          script: |
+            echo "Connected to $(hostname) as $(whoami)"
+            test -x /usr/local/bin/deploy_showcase.sh && echo "Deploy script found"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          script: |
+            /usr/local/bin/deploy_showcase.sh
