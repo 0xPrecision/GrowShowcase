@@ -1,6 +1,4 @@
-version: "3.9"
-
-x-app-env: &app_env
+x-app_env: &app_env
   env_file:
     - .env
   volumes:
@@ -8,67 +6,69 @@ x-app-env: &app_env
   restart: unless-stopped
 
 services:
-  # Одноразовый контейнер: применяет миграции и выходит
-  aerich:
-    build: .
-    <<: *app_env
-    command: bash -lc "aerich upgrade"
-    depends_on:
-      redis:
-        condition: service_started
-    # пусть падает, если миграции не прошли – это сигнал
-
   web:
-    build: .
+    build:
+      context: .
     <<: *app_env
-    # gunicorn стабильнее для прод, чем голый uvicorn
-    command: bash -lc "gunicorn -k uvicorn.workers.UvicornWorker -w ${WEB_WORKERS:-2} -b 0.0.0.0:8000 web.main:app"
-    expose:
-      - "8000"
+    command: ["bash", "-lc", "gunicorn -k uvicorn.workers.UvicornWorker -w ${WEB_WORKERS:-2} -b 0.0.0.0:8000 web.main:app"]
+    # Публикуем только на localhost — системный Caddy слушает 80/443 и проксирует сюда
     ports:
-      - "80:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
-      aerich:
-        condition: service_completed_successfully
       redis:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
       interval: 15s
       timeout: 3s
       retries: 10
       start_period: 20s
 
-  bot:
-    build: .
-    <<: *app_env
-    command: bash -lc "python -m main"
-    depends_on:
-      aerich:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.settimeout(2); s.connect((\"redis\", 6379))'"]
-      interval: 30s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-
-  redis:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes
+  aerich:
+    build:
+      context: .
+    env_file:
+      - .env
+    working_dir: /app
     volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
+      - .:/app
+      - app_data:/data            # та же БД, тот же том
+      entrypoint: [ "aerich" ]
+      profiles: [ "cli" ]
 
-volumes:
-  app_data:
-  redis_data:
+      bot:
+        build:
+          context: .
+        <<: *app_env
+        command: [ "bash", "-lc", "python -m main" ]
+        depends_on:
+          redis:
+            condition: service_healthy
+        healthcheck:
+          test:
+            [
+              "CMD",
+              "python",
+              "-c",
+              "import socket; s=socket.socket(); s.settimeout(2); s.connect((\"redis\",6379))",
+            ]
+          interval: 30s
+          timeout: 3s
+          retries: 5
+          start_period: 10s
 
+      redis:
+        image: redis:7-alpine
+        command: [ "redis-server", "--appendonly", "yes" ]
+        volumes:
+          - redis_data:/data
+        restart: unless-stopped
+        healthcheck:
+          test: [ "CMD", "redis-cli", "ping" ]
+          interval: 10s
+          timeout: 3s
+          retries: 10
 
+      volumes:
+        app_data:
+        redis_data:

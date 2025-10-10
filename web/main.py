@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from aiogram.client.default import DefaultBotProperties
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, PlainTextResponse
 
@@ -21,6 +22,8 @@ from services.i18n.middleware import LocaleMiddleware
 from services.i18n.translations import Translator
 from services.locale_repo import LocaleRepo
 
+load_dotenv()
+
 # -------------------------
 # Logging
 # -------------------------
@@ -31,7 +34,7 @@ log = logging.getLogger("web")
 # -------------------------
 # ENV
 # -------------------------
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is not set")
 
