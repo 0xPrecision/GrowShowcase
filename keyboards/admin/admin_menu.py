@@ -17,6 +17,11 @@ def admin_main_menu(t, **_):
             ],
             [
                 InlineKeyboardButton(
+                    text=t("admin_add_review"), callback_data="admin_add_review"
+                )
+            ],
+            [
+                InlineKeyboardButton(
                     text=t("admin_menu.buttons.vygruzit-statistiku"),
                     callback_data="admin_stats",
                 )

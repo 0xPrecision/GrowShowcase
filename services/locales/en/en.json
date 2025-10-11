@@ -1,4 +1,6 @@
 {
+  "add_review_picture": "Add screenshot",
+  "admin_add_review": "🌅 Add review",
   "user_package_confirmed": "Order confirmed ✅\nWe’ll get in touch shortly to confirm the details and begin your project.",
   "user_orders_utils.misc.b-zakaz-b": "🧾 <b>Order #{id}</b>\n\n📅 <b>Date: {created_at}</b>\n\n📦 <b>Status: {status}</b>\n\n💳 <b>Payment: {payment}</b>\n\n<b>Products:\n{items}</b>\n\n<b>Total: {currency}{total}</b>",
   "user_orders.misc.u-vas-poka-net": "You have no orders yet.",
@@ -97,7 +99,8 @@
   "catalog_keyboards.buttons.sozdat": "✅ Create",
   "catalog_keyboards.buttons.tovary": "📦 Products",
   "catalog_keyboards.buttons.udalit": "🗑️ Delete",
-  "catalog_keyboards.buttons.vpered": "Forward ➡️",
+  "catalog_keyboards.buttons.pred": "⬅️ Previous",
+  "catalog_keyboards.buttons.vpered": "Next ➡️",
   "catalog_keyboards.buttons.vyjti-v-glavnoe": "🏠 Back to Main Menu",
   "catalog_utils.messages.tovarov-poka-net-hotite": "No products yet.\n\nDo you want to create the first product?",
   "delete_product.messages.tovar-udalen": "Product deleted.",

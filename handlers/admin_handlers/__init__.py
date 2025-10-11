@@ -11,6 +11,7 @@ from .delete_product import router as delete_product_router
 from .edit_product import router as edit_product_router
 from .search_order import router as search_order_router
 from .search_product import router as search_product_router
+from .add_review import router as review_router
 
 router = Router()
 router.include_router(admin_common_router)
@@ -24,3 +25,4 @@ router.include_router(edit_product_router)
 router.include_router(delete_product_router)
 router.include_router(stats_router)
 router.include_router(help_router)
+router.include_router(review_router)

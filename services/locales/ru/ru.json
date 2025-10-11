@@ -1,4 +1,6 @@
 {
+  "add_review_picture": "Добавьте скриншот",
+  "admin_add_review": "🌅 Добавить отзыв",
   "user_package_confirmed": "Заказ принят ✅\nМы свяжемся с вами в ближайшее время, чтобы согласовать детали и запустить проект.",
   "user_orders_utils.misc.b-zakaz-b": "🧾 <b>Заказ #{id}</b>\n\n📅 <b>Дата: {created_at}</b>\n\n📦 <b>Статус: {status}</b>\n\n💳 <b>Оплата: {payment}</b>\n\n<b>Товары:\n{items}</b>\n\n<b>Итого: {currency}{total}</b>",
   "user_orders.misc.u-vas-poka-net": "У вас пока нет заказов.",
@@ -98,7 +100,8 @@
   "catalog_keyboards.buttons.tovary": "📦 Товары",
   "help_keyboard.buttons.zakazy": "📦 Заказы",
   "catalog_keyboards.buttons.udalit": "🗑️ Удалить",
-  "catalog_keyboards.buttons.vpered": "Вперёд ➡️",
+  "catalog_keyboards.buttons.pred": "⬅️ Пред",
+  "catalog_keyboards.buttons.vpered": "След ➡️",
   "catalog_keyboards.buttons.vyjti-v-glavnoe": "🏠 В главное меню",
   "catalog_utils.messages.tovarov-poka-net-hotite": "Товаров пока нет.\n\nХотите создать первый товар?",
   "delete_product.messages.tovar-udalen": "Товар удалён.",
@@ -155,5 +158,5 @@
   "user_help.messages.b-eto-demo-magazin-v": "1. Выберете план \n2. Напишите @TGStoreLab\n3. Получите готового бота за 1 день",
   "user_menu.messages.ispolzujte-knopki-vyshe": "Пожалуйста, используйте кнопки выше 👆",
   "user_profile_keyboards.buttons.fio": "Контактные данные",
-  "user_profile_keyboards.buttons.moi-dannye": "⭐️ Отзывы"
+  "user_profile_keyboards.buttons.moi-dannye": "⭐️ Отзывы и обратная связь"
 }

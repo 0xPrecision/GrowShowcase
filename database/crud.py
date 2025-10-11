@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import Any, List, Optional, Tuple
 
-from database.models import Cart, Order, OrderItem, Product, User
+from database.models import Cart, Order, OrderItem, Product, User, Review
+
 
 # -------- USERS --------
 
@@ -17,6 +18,22 @@ async def get_or_create_user_profile(user_id: int) -> Optional[User]:
     if not user:
         user = await User.create(id=user_id, full_name="", phone="", address="")
     return user
+
+
+# -------- REVIEWS --------
+
+
+async def create_review(file_id: int):
+    await Review.create(file_id=file_id)
+
+async def get_all_reviews():
+    return await Review.all().count()
+
+async def get_review_by_index(idx: int) -> Optional[Review]:
+    rows = await Review.all().offset(idx).limit(1)
+    return rows[0] if rows else None
+
+
 
 
 # -------- PRODUCTS --------
