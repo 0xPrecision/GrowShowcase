@@ -17,7 +17,41 @@ jobs:
       - name: Check out (optional)
         uses: actions/checkout@v4
 
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.VPS_PORT }}" "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          echo "known_hosts ok"
+
+      - name: Debug SSH (native -vvv)
+        shell: bash
+        env:
+          KEY: ${{ secrets.VPS_KEY }}
+        run: |
+          set -euxo pipefail
+          umask 077
+          printf "%s\n" "$KEY" > id
+          # полезно увидеть отпечаток ключа
+          ssh-keygen -lf id || true
+          ssh -vvv -i id -p "${{ secrets.VPS_PORT }}" -o StrictHostKeyChecking=yes "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "echo connected && whoami && hostname"
+          rm -f id
+
       - name: "Sanity: SSH smoke test"
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 30m
+          script: |
+            set -euxo pipefail
+            whoami
+            hostname
+
+      - name: "Sanity: deploy script check"
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
