@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch: {}
 
 concurrency:
@@ -12,16 +12,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out (optional)
-        uses: actions/checkout@v4
-
       - name: Add host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.VPS_PORT }}" "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
-          echo "known_hosts ok"
 
       - name: Debug SSH (native -vvv)
         shell: bash
@@ -31,12 +26,26 @@ jobs:
           set -euxo pipefail
           umask 077
           printf "%s\n" "$KEY" > id
-          # полезно увидеть отпечаток ключа
-          ssh-keygen -lf id || true
-          ssh -vvv -i id -p "${{ secrets.VPS_PORT }}" -o StrictHostKeyChecking=yes "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "echo connected && whoami && hostname"
+          ssh -vvv -i id -p "${{ secrets.VPS_PORT }}" -o StrictHostKeyChecking=yes \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "echo connected && whoami && hostname && id"
           rm -f id
 
-      - name: "Sanity: SSH smoke test"
+      - name: "Sanity: deploy script presence"
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 30m
+          script: |
+            set -euxo pipefail
+            ls -l /usr/local/bin/deploy_showcase.sh
+            head -n 1 /usr/local/bin/deploy_showcase.sh
+
+      - name: "Sanity: docker perms"
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -49,20 +58,11 @@ jobs:
           script: |
             set -euxo pipefail
             whoami
-            hostname
-
-      - name: "Sanity: deploy script check"
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script_stop: true
-          script: |
-            sudo -k
-            sudo /usr/local/bin/deploy_showcase.sh --version >/dev/null 2>&1 || true
-            test -x /usr/local/bin/deploy_showcase.sh && echo "deploy script exists"
+            id
+            which docker || true
+            docker --version || true
+            # покажет, нужен ли sudo
+            docker ps >/dev/null 2>&1 || echo "DOCKER_NEEDS_SUDO"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -72,6 +72,88 @@ jobs:
           key: ${{ secrets.VPS_KEY }}
           port: ${{ secrets.VPS_PORT }}
           script_stop: true
+          timeout: 60s
+          command_timeout: 30m
           script: |
-            sudo -k
-            sudo /usr/local/bin/deploy_showcase.sh
+            set -euxo pipefail
+            sudo -n /usr/local/bin/deploy_showcase.sh
+
+
+
+#name: Deploy to VPS
+#
+#on:
+#  push:
+#    branches: [ "main" ]
+#  workflow_dispatch: {}
+#
+#concurrency:
+#  group: deploy-main
+#  cancel-in-progress: true
+#
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Check out (optional)
+#        uses: actions/checkout@v4
+#
+#      - name: Add host key
+#        run: |
+#          mkdir -p ~/.ssh
+#          ssh-keyscan -p "${{ secrets.VPS_PORT }}" "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+#          echo "known_hosts ok"
+#
+#      - name: Debug SSH (native -vvv)
+#        shell: bash
+#        env:
+#          KEY: ${{ secrets.VPS_KEY }}
+#        run: |
+#          set -euxo pipefail
+#          umask 077
+#          printf "%s\n" "$KEY" > id
+#          # полезно увидеть отпечаток ключа
+#          ssh-keygen -lf id || true
+#          ssh -vvv -i id -p "${{ secrets.VPS_PORT }}" -o StrictHostKeyChecking=yes "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" "echo connected && whoami && hostname"
+#          rm -f id
+#
+#      - name: "Sanity: SSH smoke test"
+#        uses: appleboy/ssh-action@v1.2.0
+#        with:
+#          host: ${{ secrets.VPS_HOST }}
+#          username: ${{ secrets.VPS_USER }}
+#          key: ${{ secrets.VPS_KEY }}
+#          port: ${{ secrets.VPS_PORT }}
+#          script_stop: true
+#          timeout: 60s
+#          command_timeout: 30m
+#          script: |
+#            set -euxo pipefail
+#            whoami
+#            hostname
+#
+#      - name: "Sanity: deploy script check"
+#        uses: appleboy/ssh-action@v1.2.0
+#        with:
+#          host: ${{ secrets.VPS_HOST }}
+#          username: ${{ secrets.VPS_USER }}
+#          key: ${{ secrets.VPS_KEY }}
+#          port: ${{ secrets.VPS_PORT }}
+#          script_stop: true
+#          script: |
+#            sudo -k
+#            sudo /usr/local/bin/deploy_showcase.sh --version >/dev/null 2>&1 || true
+#            test -x /usr/local/bin/deploy_showcase.sh && echo "deploy script exists"
+#
+#      - name: Deploy via SSH
+#        uses: appleboy/ssh-action@v1.2.0
+#        with:
+#          host: ${{ secrets.VPS_HOST }}
+#          username: ${{ secrets.VPS_USER }}
+#          key: ${{ secrets.VPS_KEY }}
+#          port: ${{ secrets.VPS_PORT }}
+#          script_stop: true
+#          script: |
+#            sudo -k
+#            sudo /usr/local/bin/deploy_showcase.sh
