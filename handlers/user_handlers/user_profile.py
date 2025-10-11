@@ -25,11 +25,13 @@ async def show_profile_menu(callback: CallbackQuery, state: FSMContext, t):
 
 
 @router.callback_query(F.data == "reviews")
-async def open_reviews(callback: CallbackQuery, t):
+async def open_reviews(callback: CallbackQuery, state: FSMContext, t):
+    await delete_request_and_user_message(callback.message, state)
     await callback.answer()
     total = await get_all_reviews()
     if total == 0:
-        await callback.message.answer("No Reviews", reply_markup=cart_back_menu(t))
+        msg = await callback.message.answer("No Reviews", reply_markup=cart_back_menu(t))
+        await state.update_data(main_message_id=msg.message_id)
         return
 
     idx = 0
@@ -44,6 +46,7 @@ async def open_reviews(callback: CallbackQuery, t):
     except Exception:
         # если исходное сообщение не с медиа и редактировать нельзя — просто отправим новое фото
         await callback.message.answer_photo(photo=review.file_id, reply_markup=kb)
+
 
 
 # 5) Листание вперёд/назад
