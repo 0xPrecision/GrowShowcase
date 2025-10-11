@@ -131,3 +131,14 @@ class Cart(Model):
     user = fields.ForeignKeyField("models.User", related_name="cart")
     product = fields.ForeignKeyField("models.Product", related_name="+")
     quantity = fields.IntField()
+
+class Review(Model):
+    id = fields.IntField(pk=True)
+    file_id = fields.CharField(max_length=255, unique=True)
+    file_unique_id = fields.CharField(max_length=255, index=True)
+    added_by = fields.BigIntField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "reviews"
+        ordering = ["-created_at"]
