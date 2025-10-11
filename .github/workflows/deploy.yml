@@ -43,7 +43,7 @@ jobs:
           script: |
             set -euxo pipefail
             ls -l /usr/local/bin/deploy_showcase.sh
-            head -n 1 /usr/local/bin/deploy_showcase.sh
+            head sudo -n 1 /usr/local/bin/deploy_showcase.sh
 
       - name: "Sanity: docker perms"
         uses: appleboy/ssh-action@v1.2.0
