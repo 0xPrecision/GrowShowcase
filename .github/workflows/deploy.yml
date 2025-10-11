@@ -42,7 +42,7 @@ jobs:
           command_timeout: 30m
           script: |
             set -euxo pipefail
-            sudo -n test -x /usr/local/bin/deploy_showcase.sh
+            ls -n test -x /usr/local/bin/deploy_showcase.sh
             sudo -n ls -l /usr/local/bin/deploy_showcase.sh
 
       - name: "Sanity: docker perms"
