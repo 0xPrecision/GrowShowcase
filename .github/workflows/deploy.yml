@@ -26,8 +26,9 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script_stop: true
           script: |
-            echo "Connected to $(hostname) as $(whoami)"
-            test -x /usr/local/bin/deploy_showcase.sh && echo "Deploy script found"
+            sudo -k
+            sudo /usr/local/bin/deploy_showcase.sh --version >/dev/null 2>&1 || true
+            test -x /usr/local/bin/deploy_showcase.sh && echo "deploy script exists"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -38,4 +39,5 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script_stop: true
           script: |
-            /usr/local/bin/deploy_showcase.sh
+            sudo -k
+            sudo /usr/local/bin/deploy_showcase.sh
