@@ -23,7 +23,7 @@ async def get_or_create_user_profile(user_id: int) -> Optional[User]:
 # -------- REVIEWS --------
 
 
-async def create_review(file_id: int):
+async def create_review(file_id: str):
     await Review.create(file_id=file_id)
 
 async def get_all_reviews():

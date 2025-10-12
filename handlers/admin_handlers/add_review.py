@@ -34,7 +34,7 @@ async def add_product_photo(message: Message, state: FSMContext, t):
             text=t("order_keyboards.buttons.v-glavnoe-menyu"),
             callback_data="/start_admin")]])
     photo = message.photo[-1].file_id
-    await create_review(int(photo))
+    await create_review(photo)
     msg = await message.answer("✅", reply_markup=kb)
     await state.update_data(main_message_id=msg.message_id)
     await state.clear()
