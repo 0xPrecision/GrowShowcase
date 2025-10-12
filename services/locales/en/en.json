@@ -65,7 +65,7 @@
   "user_cart_utils.misc.b-vasha-korzina-b": "🛒 <b>Your Cart</b>\n\n",
   "user_checkout.misc.zapolnite-dannye-dlya-zakaza": "Please provide your order details.\n\n✅ Contact: {full_name}\n✅ Comment: {comment}\n3️⃣ Select a payment method:",
   "user_checkout_utils.misc.soobschenie-dlya-administratora": "Message to admin\n\n🛒 <b>New order #{id}</b>\nContact: {full_name}\nTotal amount: {currency}{total}\nComment: {comment}",
-  "user_profile.misc.b-vy-v": "<b>⭐Reviews & Contact info</b>",
+  "user_profile.misc.b-vy-v": "<b>⭐Reviews & Contact</b>",
   "add_product.dannye-tovara": "<b>Check product details:</b>\n\nName: <b>{name}</b>\n\nPrice: <b>{currency}{price}</b>\n\nDescription: <b>{descr}</b>\n\nImage: {img}\n\n\nDo you want to create this product?",
   "spisok-tovarov": "<b>Product list</b> (choose to view/edit):",
   "add_product.messages.nazvanie-ne-mozhet-byt": "Name cannot be empty. Enter again:",

@@ -67,18 +67,17 @@ def reviews_kb(
         # Первая страница
         if total > 1:
             keyboard.append([btn_next])
-        if btn_contact:
-            keyboard.append([btn_contact])
-        keyboard.append([btn_home])
 
     elif curr == total - 1:
         # Последняя страница
         keyboard.append([btn_prev])
-        keyboard.append([btn_home])
 
     else:
         # Промежуточные страницы
         keyboard.append([btn_prev, btn_next])
-        keyboard.append([btn_home])
+
+    if btn_contact:
+        keyboard.append([btn_contact])
+    keyboard.append([btn_home])
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
