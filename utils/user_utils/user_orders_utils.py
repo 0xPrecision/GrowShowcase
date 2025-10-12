@@ -8,7 +8,7 @@ from database.crud import get_cart, get_orders, get_order_by_id, get_order_items
 from keyboards.user_kb.user_checkout_keyboards import after_cancellation_kb
 from states.user_states.order_states import OrderStates
 from keyboards.user_kb.order_keyboards import order_confirm_keyboard, show_orders_keyboard, order_details_keyboard
-from utils.user_utils.common_utils import delete_request_and_user_message, format_product_name, format_price
+from utils.common_utils import delete_request_and_user_message, format_product_name, format_price
 
 
 async def show_orders_menu(

@@ -3,7 +3,7 @@ from typing import List, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from constants import ORDER_STATUSES
-from utils.user_utils.common_utils import format_price
+from utils.common_utils import format_price
 
 
 def orders_list_keyboard(

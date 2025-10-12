@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from states.admin_states.product_states import AddProductStates
 from database.crud import create_product
 from keyboards.admin.catalog_keyboards import back_menu, create_or_cancel_product_kb, admin_ask_new_product
-from utils.user_utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message, format_price
 from .admin_access import admin_only
 
 router = Router()

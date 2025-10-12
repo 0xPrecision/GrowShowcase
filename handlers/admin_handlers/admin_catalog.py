@@ -9,7 +9,7 @@ from database.crud import (
     get_products_page,
 )
 from keyboards.admin.catalog_keyboards import product_admin_keyboard
-from utils.user_utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message, format_price
 
 from .admin_access import admin_only
 

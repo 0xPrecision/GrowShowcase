@@ -3,7 +3,7 @@ from typing import List, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from database.crud import get_product_by_id
-from utils.user_utils.common_utils import format_price
+from utils.common_utils import format_price
 
 
 def back_menu(t, **_) -> InlineKeyboardMarkup:

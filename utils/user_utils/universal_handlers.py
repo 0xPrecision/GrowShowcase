@@ -6,7 +6,7 @@ from handlers.user_handlers.user_catalog import show_products
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
 from keyboards.user_kb.user_main_menu import main_menu
 from states.user_states.order_states import OrderStates
-from utils.user_utils.common_utils import delete_request_and_user_message
+from utils.common_utils import delete_request_and_user_message
 from utils.user_utils.user_common_utils import send_step_and_cleanup
 
 router = Router()

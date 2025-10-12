@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 
 from database.models import Product
 from keyboards.admin.catalog_keyboards import ask_of_create_product, products_list_keyboard
-from utils.user_utils.common_utils import format_price, delete_request_and_user_message
+from utils.common_utils import format_price, delete_request_and_user_message
 
 
 def get_product_short_info(product, t) -> str:

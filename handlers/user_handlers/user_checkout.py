@@ -12,7 +12,7 @@ from keyboards.user_kb.order_keyboards import order_details_keyboard
 from keyboards.user_kb.user_checkout_keyboards import payment_methods_keyboard, checkout_edit_keyboard, \
     after_cancellation_kb, confirm_test_order_kb
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
-from utils.user_utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message, format_price
 from utils.user_utils.universal_handlers import universal_exit, universal_name_handler
 from utils.user_utils.user_checkout_utils import editing_name, editing_comment, editing_payment, notify_admin_about_new_order
 from utils.user_utils.user_common_utils import start_manual_checkout, send_step_and_cleanup

@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, InputMediaPhoto
 
 from database.crud import get_all_reviews, get_review_by_index
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
-from utils.user_utils.common_utils import delete_request_and_user_message
+from utils.common_utils import delete_request_and_user_message
 
 from keyboards.user_kb.user_profile_keyboards import profile_menu_keyboard, reviews_kb
 from utils.user_utils.user_profile_utils import ReviewsCB

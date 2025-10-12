@@ -58,8 +58,3 @@ async def delete_request_and_user_message(
         await message.delete()
     except Exception:
         pass
-
-
-def get_order_status_label(status: str, t) -> str:
-    mapping = dict((key, t(label_key)) for key, label_key in ORDER_STATUSES)
-    return mapping.get(status, status)

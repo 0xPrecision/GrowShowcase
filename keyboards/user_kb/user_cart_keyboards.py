@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from utils.user_utils.common_utils import format_product_name
+from utils.common_utils import format_product_name
 
 
 def cart_keyboard(

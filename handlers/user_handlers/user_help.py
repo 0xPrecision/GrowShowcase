@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from keyboards.user_kb.user_main_menu import main_menu
-from utils.user_utils.common_utils import delete_request_and_user_message
+from utils.common_utils import delete_request_and_user_message
 
 router = Router()
 

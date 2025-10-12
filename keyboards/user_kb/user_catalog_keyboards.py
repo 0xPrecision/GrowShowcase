@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from constants import EMOJI_MAP
-from utils.user_utils.common_utils import format_price, format_product_name
+from utils.common_utils import format_price, format_product_name
 
 def show_products_keyboard(
     products: list, t, **_
