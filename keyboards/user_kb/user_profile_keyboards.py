@@ -65,8 +65,9 @@ def reviews_kb(
 
     if curr == 0:
         # Первая страница
-        keyboard.append([btn_next])
-        if btn_contact:
+        if total > 0:
+            keyboard.append([btn_next])
+        elif btn_contact:
             keyboard.append([btn_contact])
         keyboard.append([btn_home])
 
