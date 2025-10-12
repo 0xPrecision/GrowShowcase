@@ -1,9 +1,4 @@
-EMOJI_MAP = {
-    1: "🚀",   # Lite
-    2: "💼",   # Pro
-    3: "🛠",   # Custom
-    4: "🪙"
-}
+EMOJI_MAP = {1: "🚀", 2: "💼", 3: "🛠", 4: "🪙"}  # Lite  # Pro  # Custom
 
 ORDER_STATUSES = [
     ("pending", "order.status.pending"),

@@ -174,7 +174,7 @@ async def show_edit_product_summary(
         product_name=f"{label} {data["name"]}",
         price=format_price(data["price"]),
         currency=t("currency"),
-        description=t(data["description"]) or "—"
+        description=t(data["description"]) or "—",
     )
     if data.get("photo"):
         try:

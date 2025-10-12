@@ -6,9 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from config_data.bot_instance import bot
-from database.crud import (
-    get_all_products, get_cart, clear_cart
-)
+from database.crud import get_all_products, get_cart, clear_cart
 from keyboards.user_kb.user_cart_keyboards import yes_or_no_kb
 from keyboards.user_kb.user_checkout_keyboards import after_cancellation_kb
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
@@ -18,6 +16,7 @@ from utils.common_utils import delete_request_and_user_message
 from utils.user_utils.user_cart_utils import build_cart_view
 
 router = Router()
+
 
 @router.callback_query(F.data == "edit_cart")
 async def show_cart(callback: CallbackQuery, state: FSMContext, t, **_) -> None:
@@ -60,20 +59,27 @@ async def add_to_cart_handler(callback: CallbackQuery, t, **_) -> None:
     await callback.bot.send_message(
         chat_id=admin_id,
         text=t("user_cart.messages.tovar-dobavlen-v-korzinu").format(
-            package=product.name, username=username)
+            package=product.name, username=username
+        ),
     )
     sent_message = await bot.send_message(user_id, t("user_package_confirmed"))
     await asyncio.sleep(3)
     await bot.delete_message(user_id, sent_message.message_id)
 
 
-@router.callback_query((F.data == "clear_cart") | (F.data.startswith("removefromcart_")))
+@router.callback_query(
+    (F.data == "clear_cart") | (F.data.startswith("removefromcart_"))
+)
 async def ask_before_cancellation(callback: CallbackQuery, state: FSMContext, t):
     try:
-        await callback.message.edit_text(t("action_will_cancel_order"), reply_markup=yes_or_no_kb(t))
+        await callback.message.edit_text(
+            t("action_will_cancel_order"), reply_markup=yes_or_no_kb(t)
+        )
     except TelegramBadRequest:
         await delete_request_and_user_message(callback.message, state)
-        msg = await callback.message.answer(t("action_will_cancel_order"), reply_markup=yes_or_no_kb(t))
+        msg = await callback.message.answer(
+            t("action_will_cancel_order"), reply_markup=yes_or_no_kb(t)
+        )
         await state.update_data(main_message_id=msg.message_id)
         await callback.answer()
 

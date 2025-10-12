@@ -5,7 +5,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from database.models import Product
-from keyboards.admin.catalog_keyboards import ask_of_create_product, products_list_keyboard
+from keyboards.admin.catalog_keyboards import (
+    ask_of_create_product,
+    products_list_keyboard,
+)
 from utils.common_utils import format_price, delete_request_and_user_message
 
 
@@ -57,4 +60,3 @@ async def get_products_info(
         ),
     )
     await state.update_data(main_message_id=msg.message_id)
-

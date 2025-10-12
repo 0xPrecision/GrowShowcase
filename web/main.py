@@ -28,7 +28,9 @@ load_dotenv()
 # Logging
 # -------------------------
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+logging.basicConfig(
+    level=LOG_LEVEL, format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
 log = logging.getLogger("web")
 
 # -------------------------
@@ -40,7 +42,9 @@ if not BOT_TOKEN:
 
 WEBHOOK_BASE = os.getenv("TELEGRAM_WEBHOOK_URL")  # например: https://bot.example.com
 if not WEBHOOK_BASE or not WEBHOOK_BASE.startswith(("https://", "http://")):
-    raise RuntimeError("TELEGRAM_WEBHOOK_URL must be an absolute URL with scheme (https://...)")
+    raise RuntimeError(
+        "TELEGRAM_WEBHOOK_URL must be an absolute URL with scheme (https://...)"
+    )
 
 WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET")
 if not WEBHOOK_SECRET:
@@ -73,15 +77,18 @@ dp.update.middleware.register(LocaleMiddleware(translator, locale_repo))
 # Роутеры
 try:
     from handlers.admin_handlers import router as admin_router
+
     dp.include_router(admin_router)
 except Exception as e:
     log.info("admin_handlers not loaded: %s", e)
 
 try:
     from handlers.user_handlers import router as user_router
+
     dp.include_router(user_router)
 except Exception as e:
     log.info("user_handlers not loaded: %s", e)
+
 
 # -------------------------
 # FastAPI app with lifespan
@@ -97,7 +104,13 @@ async def lifespan(app: FastAPI):
             url=TELEGRAM_WEBHOOK_URL,
             secret_token=WEBHOOK_SECRET,  # Телега пришлет X-Telegram-Bot-Api-Secret-Token
             drop_pending_updates=True,
-            allowed_updates=["message", "edited_message", "callback_query", "chat_member", "my_chat_member"],
+            allowed_updates=[
+                "message",
+                "edited_message",
+                "callback_query",
+                "chat_member",
+                "my_chat_member",
+            ],
         )
         log.info("Webhook set to %s", TELEGRAM_WEBHOOK_URL)
     except Exception as e:
@@ -116,7 +129,9 @@ async def lifespan(app: FastAPI):
             except Exception:
                 pass
 
+
 app = FastAPI(title="ShopBot Webhooks", lifespan=lifespan)
+
 
 # -------------------------
 # Health & root
@@ -125,9 +140,11 @@ app = FastAPI(title="ShopBot Webhooks", lifespan=lifespan)
 async def health():
     return PlainTextResponse("ok")
 
+
 @app.get("/")
 async def root():
     return PlainTextResponse("ShopBot webhook service")
+
 
 # -------------------------
 # Telegram webhook
@@ -142,6 +159,7 @@ def verify_telegram_secret(request: Request):
         raise HTTPException(status_code=403, detail="forbidden")
     return True
 
+
 @app.post(TELEGRAM_WEBHOOK_PATH)
 async def telegram_webhook(request: Request, _ok=Depends(verify_telegram_secret)):
     try:
@@ -153,6 +171,7 @@ async def telegram_webhook(request: Request, _ok=Depends(verify_telegram_secret)
         # Возвращаем ok, чтобы Телега не долбила ретраями
         return JSONResponse({"ok": True})
     return JSONResponse({"ok": True})
+
 
 # -------------------------
 # Stripe webhook
@@ -187,6 +206,7 @@ async def webhook_stripe(request: Request):
             return JSONResponse({"ok": True})
 
     return JSONResponse({"ok": True})
+
 
 # -------------------------
 # Cryptomus webhook

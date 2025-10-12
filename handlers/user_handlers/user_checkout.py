@@ -5,17 +5,32 @@ from aiogram.types import CallbackQuery, Message
 from constants import EMOJI_MAP
 from database.crud import (
     create_order,
-    get_cart, add_to_cart, clear_cart, get_product_by_id,
+    get_cart,
+    add_to_cart,
+    clear_cart,
+    get_product_by_id,
 )
 from states.user_states.order_states import OrderStates
 from keyboards.user_kb.order_keyboards import order_details_keyboard
-from keyboards.user_kb.user_checkout_keyboards import payment_methods_keyboard, checkout_edit_keyboard, \
-    after_cancellation_kb, confirm_test_order_kb
+from keyboards.user_kb.user_checkout_keyboards import (
+    payment_methods_keyboard,
+    checkout_edit_keyboard,
+    after_cancellation_kb,
+    confirm_test_order_kb,
+)
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
 from utils.common_utils import delete_request_and_user_message, format_price
 from utils.user_utils.universal_handlers import universal_exit, universal_name_handler
-from utils.user_utils.user_checkout_utils import editing_name, editing_comment, editing_payment, notify_admin_about_new_order
-from utils.user_utils.user_common_utils import start_manual_checkout, send_step_and_cleanup
+from utils.user_utils.user_checkout_utils import (
+    editing_name,
+    editing_comment,
+    editing_payment,
+    notify_admin_about_new_order,
+)
+from utils.user_utils.user_common_utils import (
+    start_manual_checkout,
+    send_step_and_cleanup,
+)
 from utils.user_utils.user_orders_utils import show_order_summary
 
 router = Router()
@@ -56,6 +71,7 @@ async def show_demo_order(callback: CallbackQuery, t):
 
     await callback.answer()
 
+
 @router.callback_query(F.data == "start_test")
 async def place_an_order_handler(callback: CallbackQuery, t, state: FSMContext, **_):
     """
@@ -78,13 +94,18 @@ async def place_an_order_handler(callback: CallbackQuery, t, state: FSMContext, 
         await start_manual_checkout(callback, state, t, username)
         await state.set_state(OrderStates.waiting_for_ask)
     else:
-        msg = await callback.message.answer(t("user_common_utils.messages.zapolnite-dannye-1-fio"),
-                                            reply_markup=cart_back_menu(t))
+        msg = await callback.message.answer(
+            t("user_common_utils.messages.zapolnite-dannye-1-fio"),
+            reply_markup=cart_back_menu(t),
+        )
         await state.set_state(OrderStates.waiting_for_name)
         await state.update_data(main_message_id=msg.message_id)
     await callback.answer()
 
-@router.callback_query(OrderStates.waiting_for_ask, F.data.in_({"use", "fill_manually"}))
+
+@router.callback_query(
+    OrderStates.waiting_for_ask, F.data.in_({"use", "fill_manually"})
+)
 async def ask_nickname_handler(callback: CallbackQuery, state: FSMContext, t):
     await delete_request_and_user_message(callback.message, state)
     if callback.data == "use":
@@ -94,8 +115,10 @@ async def ask_nickname_handler(callback: CallbackQuery, state: FSMContext, t):
         msg = await callback.message.answer(text, reply_markup=cart_back_menu(t))
         await state.set_state(OrderStates.waiting_for_comment)
     else:
-        msg = await callback.message.answer(t("user_common_utils.messages.zapolnite-dannye-1-fio"),
-                                            reply_markup=cart_back_menu(t))
+        msg = await callback.message.answer(
+            t("user_common_utils.messages.zapolnite-dannye-1-fio"),
+            reply_markup=cart_back_menu(t),
+        )
         await state.set_state(OrderStates.waiting_for_name)
 
     await state.update_data(main_message_id=msg.message_id)
@@ -231,7 +254,6 @@ async def edit_payment_callback(callback: CallbackQuery, t, state: FSMContext, *
     await state.update_data(main_message_id=msg.message_id)
     await state.set_state(OrderStates.editing_payment)
     await callback.answer()
-
 
 
 @router.callback_query(OrderStates.confirm, F.data == "back_to_confirm")

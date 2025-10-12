@@ -21,8 +21,7 @@ def main_menu(t, **_) -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(
-                    text=t("admin_menu.buttons.pomosch"),
-                    callback_data="menu_help"
+                    text=t("admin_menu.buttons.pomosch"), callback_data="menu_help"
                 )
             ],
             [
@@ -31,6 +30,5 @@ def main_menu(t, **_) -> InlineKeyboardMarkup:
                     callback_data="menu_call",
                 )
             ],
-
         ]
     )

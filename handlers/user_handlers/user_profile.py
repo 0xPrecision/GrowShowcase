@@ -11,6 +11,7 @@ from utils.user_utils.user_profile_utils import ReviewsCB
 
 router = Router()
 
+
 @router.callback_query(F.data == "menu_call")
 async def show_profile_menu(callback: CallbackQuery, state: FSMContext, t):
     """
@@ -30,7 +31,9 @@ async def open_reviews(callback: CallbackQuery, state: FSMContext, t):
     await callback.answer()
     total = await get_all_reviews()
     if total == 0:
-        msg = await callback.message.answer("No Reviews", reply_markup=cart_back_menu(t))
+        msg = await callback.message.answer(
+            "No Reviews", reply_markup=cart_back_menu(t)
+        )
         await state.update_data(main_message_id=msg.message_id)
         return
 
@@ -46,7 +49,6 @@ async def open_reviews(callback: CallbackQuery, state: FSMContext, t):
     except Exception:
         # если исходное сообщение не с медиа и редактировать нельзя — просто отправим новое фото
         await callback.message.answer_photo(photo=review.file_id, reply_markup=kb)
-
 
 
 # 5) Листание вперёд/назад
@@ -67,4 +69,3 @@ async def paginate_reviews(callback: CallbackQuery, callback_data: ReviewsCB):
         media=InputMediaPhoto(media=review.file_id),
         reply_markup=kb,
     )
-

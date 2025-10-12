@@ -25,6 +25,7 @@ def confirm_test_order_kb(t):
         ]
     )
 
+
 def after_cancellation_kb(t):
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -70,7 +71,7 @@ def use_username(t, username):
                     text=t("catalog_keyboards.buttons.otmena"),
                     callback_data="cancel_order",
                 )
-            ]
+            ],
         ]
     )
 
@@ -141,5 +142,3 @@ def checkout_edit_keyboard(t, **_):
             ],
         ]
     )
-
-

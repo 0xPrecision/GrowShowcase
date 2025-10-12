@@ -6,7 +6,11 @@ from aiogram.types import CallbackQuery, Message
 
 from states.admin_states.product_states import AddProductStates
 from database.crud import create_product
-from keyboards.admin.catalog_keyboards import back_menu, create_or_cancel_product_kb, admin_ask_new_product
+from keyboards.admin.catalog_keyboards import (
+    back_menu,
+    create_or_cancel_product_kb,
+    admin_ask_new_product,
+)
 from utils.common_utils import delete_request_and_user_message, format_price
 from .admin_access import admin_only
 
@@ -90,7 +94,6 @@ async def add_product_description(message: Message, t, state: FSMContext, **_):
     )
     await state.update_data(main_message_id=msg.message_id)
     await state.set_state(AddProductStates.waiting_photo)
-
 
 
 @router.message(AddProductStates.waiting_photo, F.photo)

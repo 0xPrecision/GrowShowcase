@@ -10,6 +10,7 @@ class AddProductStates(StatesGroup):
     waiting_category = State()
     confirming = State()
 
+
 class AddReviewStates(StatesGroup):
     waiting_photo = State()
 

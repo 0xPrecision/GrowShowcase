@@ -7,8 +7,16 @@ from aiogram.types import CallbackQuery
 from database.crud import get_cart, get_orders, get_order_by_id, get_order_items
 from keyboards.user_kb.user_checkout_keyboards import after_cancellation_kb
 from states.user_states.order_states import OrderStates
-from keyboards.user_kb.order_keyboards import order_confirm_keyboard, show_orders_keyboard, order_details_keyboard
-from utils.common_utils import delete_request_and_user_message, format_product_name, format_price
+from keyboards.user_kb.order_keyboards import (
+    order_confirm_keyboard,
+    show_orders_keyboard,
+    order_details_keyboard,
+)
+from utils.common_utils import (
+    delete_request_and_user_message,
+    format_product_name,
+    format_price,
+)
 
 
 async def show_orders_menu(
@@ -29,7 +37,6 @@ async def show_orders_menu(
         await callback.message.answer(msg_text, reply_markup=after_cancellation_kb(t))
         return
 
-
     text = t("orders.list.header")
     for order in orders:
         text += t("orders.list.items").format(
@@ -37,7 +44,7 @@ async def show_orders_menu(
             date=order.created_at.strftime(t("date_format")),
             status=t(order.status),
             currency=t("currency"),
-            total=format_price(order.total_price)
+            total=format_price(order.total_price),
         )
     text += t("orders.list.footer")
     await callback.message.answer(text, reply_markup=show_orders_keyboard(orders, t))
@@ -73,11 +80,10 @@ async def get_order_details(order_id: int, t, **_) -> Dict:
         payment=order.payment_method or "-",
         items=items_text,
         currency=t("currency"),
-        total=format_price(total)
+        total=format_price(total),
     )
 
     return {"text": text, "keyboard": order_details_keyboard(t)}
-
 
 
 async def show_order_summary(message_or_callback, state: FSMContext, t) -> None:

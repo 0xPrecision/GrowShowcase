@@ -18,9 +18,21 @@ except Exception as e:
 # -------------------------
 # ENV switches for prod
 # -------------------------
-AERICH_AUTO_UPGRADE = os.getenv("AERICH_AUTO_UPGRADE", "false").lower() in {"1", "true", "yes"}
-INIT_DB_ALLOW_GENERATE = os.getenv("INIT_DB_ALLOW_GENERATE", "false").lower() in {"1", "true", "yes"}
-BACKUP_BEFORE_MIGRATE = os.getenv("BACKUP_BEFORE_MIGRATE", "true").lower() in {"1", "true", "yes"}
+AERICH_AUTO_UPGRADE = os.getenv("AERICH_AUTO_UPGRADE", "false").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+INIT_DB_ALLOW_GENERATE = os.getenv("INIT_DB_ALLOW_GENERATE", "false").lower() in {
+    "1",
+    "true",
+    "yes",
+}
+BACKUP_BEFORE_MIGRATE = os.getenv("BACKUP_BEFORE_MIGRATE", "true").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 
 def _sqlite_file_from_url(db_url: str) -> Optional[Path]:

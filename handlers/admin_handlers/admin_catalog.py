@@ -16,7 +16,6 @@ from .admin_access import admin_only
 router = Router()
 
 
-
 @router.callback_query(F.data == "admin_products")
 @admin_only
 async def admin_products_list(callback: CallbackQuery, state: FSMContext, t):
@@ -53,7 +52,7 @@ async def admin_product_detail(callback: CallbackQuery, t, state: FSMContext, **
         product_name=f"{label} {product_name}",
         price=pr_price,
         currency=t("currency"),
-        description=pr_descr
+        description=pr_descr,
     )
     if product.photo:
         msg = await callback.message.answer_photo(

@@ -3,9 +3,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from constants import EMOJI_MAP
 from utils.common_utils import format_price, format_product_name
 
-def show_products_keyboard(
-    products: list, t, **_
-) -> InlineKeyboardMarkup:
+
+def show_products_keyboard(products: list, t, **_) -> InlineKeyboardMarkup:
     """
     Creates an inline keyboard for displaying products with pagination.
 
@@ -22,18 +21,12 @@ def show_products_keyboard(
         for product in products
     ]
     rows.append(
-        [
-            InlineKeyboardButton(
-                text=t("contact_me"),
-                url="https://t.me/TGStoreLab"
-            )
-        ]
+        [InlineKeyboardButton(text=t("contact_me"), url="https://t.me/TGStoreLab")]
     )
     rows.append(
         [
             InlineKeyboardButton(
-                text=t("catalog_keyboards.buttons.nazad"),
-                callback_data="menu_main"
+                text=t("catalog_keyboards.buttons.nazad"), callback_data="menu_main"
             )
         ]
     )
@@ -57,7 +50,9 @@ def show_product_info_kb(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text=t("user_catalog_keyboards.buttons.v-korzinu").format(product=product_name),
+                        text=t("user_catalog_keyboards.buttons.v-korzinu").format(
+                            product=product_name
+                        ),
                         callback_data=f"addtocart_{product_id}",
                     )
                 ],
@@ -80,7 +75,9 @@ def show_product_info_kb(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text=t("user_cart_keyboards.buttons.ubrat-iz-korziny").format(product=product_name),
+                        text=t("user_cart_keyboards.buttons.ubrat-iz-korziny").format(
+                            product=product_name
+                        ),
                         callback_data=f"removefromcart_{product_id}",
                     )
                 ],

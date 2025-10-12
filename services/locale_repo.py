@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from database.models import User, UserLocale
 
+
 class LocaleRepo:
     @staticmethod
     async def get(user_id: int) -> Optional[str]:

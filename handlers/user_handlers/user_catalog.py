@@ -2,12 +2,16 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 
 from constants import EMOJI_MAP
-from keyboards.user_kb.user_catalog_keyboards import show_product_info_kb, show_products_keyboard
+from keyboards.user_kb.user_catalog_keyboards import (
+    show_product_info_kb,
+    show_products_keyboard,
+)
 from utils.common_utils import format_price
 from database.crud import get_all_products
 from database.models import Product
 
 router = Router()
+
 
 async def show_products(callback: CallbackQuery, t, **_) -> None:
     """

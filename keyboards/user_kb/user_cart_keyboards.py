@@ -3,9 +3,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from utils.common_utils import format_product_name
 
 
-def cart_keyboard(
-    products: list, t, **_
-) -> InlineKeyboardMarkup:
+def cart_keyboard(products: list, t, **_) -> InlineKeyboardMarkup:
     """
     Creates an inline keyboard for the cart with navigation and a “Pay” button.
     :param products: List of (Cart, Product).
@@ -56,6 +54,7 @@ def cart_keyboard(
         ]
     )
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
 
 def yes_or_no_kb(t):
     return InlineKeyboardMarkup(

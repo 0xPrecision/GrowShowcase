@@ -27,7 +27,10 @@ def profile_menu_keyboard(t, **_):
         ]
     )
 
-def reviews_kb(curr: int, total: int, contact_url: str | None = None) -> InlineKeyboardMarkup:
+
+def reviews_kb(
+    curr: int, total: int, contact_url: str | None = None
+) -> InlineKeyboardMarkup:
     prev_idx = (curr - 1) % total
     next_idx = (curr + 1) % total
 
@@ -45,4 +48,3 @@ def reviews_kb(curr: int, total: int, contact_url: str | None = None) -> InlineK
         row.append(InlineKeyboardButton(text="contact_me", url=contact_url))
 
     return InlineKeyboardMarkup(inline_keyboard=[row])
-

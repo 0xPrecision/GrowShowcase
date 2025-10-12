@@ -21,9 +21,9 @@ def show_orders_keyboard(orders: List[Order], t, **_) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text=t("orders.list.item").format(
                     order_id=order.id,
-                    status=t(get_order_status_label(
-                        order.status, t
-                    )),  # тут возвращается локализованный текст со смайликом
+                    status=t(
+                        get_order_status_label(order.status, t)
+                    ),  # тут возвращается локализованный текст со смайликом
                 ),
                 callback_data=f"order_details_{order.id}",
             )
@@ -57,9 +57,7 @@ def show_orders_keyboard(orders: List[Order], t, **_) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def order_details_keyboard(
-    t, **_
-) -> InlineKeyboardMarkup:
+def order_details_keyboard(t, **_) -> InlineKeyboardMarkup:
     """
     Creates a keyboard for detailed order view.
 

@@ -1,6 +1,7 @@
 import os, stripe
 from typing import Dict, Optional
 
+
 class StripeGateway:
     def __init__(self):
         self.api_key = os.getenv("STRIPE_API_KEY")
@@ -9,7 +10,14 @@ class StripeGateway:
             raise RuntimeError("STRIPE_API_KEY not set")
         stripe.api_key = self.api_key
 
-    def create_checkout(self, amount_cents: int, currency: str, order_id: str, title: str, email: Optional[str] = None) -> str:
+    def create_checkout(
+        self,
+        amount_cents: int,
+        currency: str,
+        order_id: str,
+        title: str,
+        email: Optional[str] = None,
+    ) -> str:
         success_url = os.getenv("PAY_SUCCESS_URL")
         cancel_url = os.getenv("PAY_CANCEL_URL")
         if not success_url or not cancel_url:
@@ -18,16 +26,18 @@ class StripeGateway:
             mode="payment",
             success_url=f"{success_url}?order_id={order_id}",
             cancel_url=f"{cancel_url}?order_id={order_id}",
-            line_items=[{
-                "price_data": {
-                    "currency": currency.lower(),
-                    "product_data": {"name": title},
-                    "unit_amount": amount_cents,
-                },
-                "quantity": 1
-            }],
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": currency.lower(),
+                        "product_data": {"name": title},
+                        "unit_amount": amount_cents,
+                    },
+                    "quantity": 1,
+                }
+            ],
             customer_email=email,
-            metadata={"order_id": order_id, "title": title}
+            metadata={"order_id": order_id, "title": title},
         )
         return session.url
 

@@ -23,17 +23,27 @@ async def get_or_create_user_profile(user_id: int) -> Optional[User]:
 # -------- REVIEWS --------
 
 
-async def create_review(file_id: str):
-    await Review.create(file_id=file_id)
+async def create_review(file_id: str, file_unique_id: str):
+    # Проверяем, есть ли уже отзыв с таким уникальным файлом
+    existing = await Review.get_or_none(file_unique_id=file_unique_id)
+
+    if existing:
+        # Файл уже есть — обновим file_id на новый (если Telegram его сменил)
+        existing.file_id = file_id
+        await existing.save()
+        return existing
+
+    # Если нет — создаём новый отзыв
+    return await Review.create(file_id=file_id, file_unique_id=file_unique_id)
+
 
 async def get_all_reviews():
     return await Review.all().count()
 
+
 async def get_review_by_index(idx: int) -> Optional[Review]:
     rows = await Review.all().offset(idx).limit(1)
     return rows[0] if rows else None
-
-
 
 
 # -------- PRODUCTS --------
@@ -91,7 +101,6 @@ async def get_all_products() -> List[Product]:
     :return: List of Product objects.
     """
     return await Product.filter(is_active=True).all()
-
 
 
 async def get_products_page_by_category(
@@ -174,6 +183,7 @@ async def get_cart(user_id: int) -> List[Cart]:
     """
     user = await get_or_create_user_profile(user_id)
     return await Cart.filter(user=user).prefetch_related("product").all()
+
 
 async def remove_from_cart(user_id: int, product_id: int) -> None:
     """

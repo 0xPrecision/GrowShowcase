@@ -16,7 +16,9 @@ async def delete_user_message_safe(message: Message) -> None:
         pass
 
 
-async def start_manual_checkout(message_or_callback, state: FSMContext, t, username, **_):
+async def start_manual_checkout(
+    message_or_callback, state: FSMContext, t, username, **_
+):
     """
     Full name handler for checkout, supports edit mode.
     After successful input, immediately shows the comment step (if not edit).
@@ -29,7 +31,7 @@ async def start_manual_checkout(message_or_callback, state: FSMContext, t, usern
     await delete_request_and_user_message(target_message, state)
     main_msg = await target_message.answer(
         t("user_common_utils.messages.zapolnite-dannye-1-fio"),
-        reply_markup=use_username(t, username)
+        reply_markup=use_username(t, username),
     )
     await state.update_data(main_message_id=main_msg.message_id)
 
@@ -45,7 +47,6 @@ async def validation_process_name(message: Message, state: FSMContext, t, **_):
         reply_markup=cart_back_menu(t),
     )
     await state.update_data(main_message_id=warn.message_id)
-
 
 
 async def send_step_and_cleanup(

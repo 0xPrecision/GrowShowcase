@@ -63,7 +63,7 @@ async def search_product_query(message: Message, t, state: FSMContext, **_):
             product_name=f"{label} {product_name}",
             price=pr_price,
             currency=t("currency"),
-            description=pr_descr
+            description=pr_descr,
         )
         if product.photo:
             await message.bot.send_photo(

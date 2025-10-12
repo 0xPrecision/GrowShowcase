@@ -1,11 +1,14 @@
 import os, json, hmac, hashlib, httpx
 from typing import Dict, Optional
 
+
 class CryptomusGateway:
     def __init__(self):
         self.merchant_id = os.getenv("CRYPTOMUS_MERCHANT_ID")
         self.api_key = os.getenv("CRYPTOMUS_API_KEY")
-        self.base_url = (os.getenv("CRYPTOMUS_BASE_URL") or "https://api.cryptomus.com").rstrip("/")
+        self.base_url = (
+            os.getenv("CRYPTOMUS_BASE_URL") or "https://api.cryptomus.com"
+        ).rstrip("/")
         if not self.merchant_id or not self.api_key:
             raise RuntimeError("CRYPTOMUS creds not set")
         self.client = httpx.AsyncClient(base_url=self.base_url, timeout=20)
@@ -14,20 +17,33 @@ class CryptomusGateway:
         body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode()
         return hmac.new(self.api_key.encode(), body, hashlib.sha256).hexdigest()
 
-    async def create_invoice(self, amount: str, currency: str, order_id: str, network: Optional[str], title: str, callback_url: str, success_url: str) -> str:
+    async def create_invoice(
+        self,
+        amount: str,
+        currency: str,
+        order_id: str,
+        network: Optional[str],
+        title: str,
+        callback_url: str,
+        success_url: str,
+    ) -> str:
         payload = {
             "merchant": self.merchant_id,
             "amount": str(amount),
             "currency": currency.upper(),
             "order_id": order_id,
-            "network": network,          # 'TRC20' желательно
+            "network": network,  # 'TRC20' желательно
             "success_url": success_url,
             "callback_url": callback_url,
             "lifetime": 3600,
-            "description": title
+            "description": title,
         }
         payload = {k: v for k, v in payload.items() if v is not None}
-        headers = {"merchant": self.merchant_id, "sign": self._sign(payload), "Content-Type": "application/json"}
+        headers = {
+            "merchant": self.merchant_id,
+            "sign": self._sign(payload),
+            "Content-Type": "application/json",
+        }
         r = await self.client.post("/v1/payment", headers=headers, json=payload)
         r.raise_for_status()
         data = r.json()
@@ -50,6 +66,6 @@ class CryptomusGateway:
                 "order_id": payload.get("order_id") or payload.get("merchant_order_id"),
                 "amount": payload.get("amount"),
                 "currency": (payload.get("currency") or "").upper(),
-                "txid": payload.get("txid") or payload.get("hash")
+                "txid": payload.get("txid") or payload.get("hash"),
             }
         return None
