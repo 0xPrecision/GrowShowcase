@@ -39,7 +39,7 @@ async def open_reviews(callback: CallbackQuery, state: FSMContext, t):
 
     idx = 0
     review = await get_review_by_index(idx)
-    kb = reviews_kb(idx, total, contact_url="https://t.me/TGStoreLab")
+    kb = reviews_kb(idx, total, t, contact_url="https://t.me/TGStoreLab")
 
     try:
         await callback.message.edit_media(
@@ -53,16 +53,21 @@ async def open_reviews(callback: CallbackQuery, state: FSMContext, t):
 
 # 5) Листание вперёд/назад
 @router.callback_query(ReviewsCB.filter(F.action.in_({"next", "prev"})))
-async def paginate_reviews(callback: CallbackQuery, callback_data: ReviewsCB):
+async def paginate_reviews(
+    callback: CallbackQuery, state: FSMContext, callback_data: ReviewsCB, t
+):
     await callback.answer()
     total = await get_all_reviews()
     if total == 0:
-        await callback.message.edit_text("Пока отзывов нет.")
+        msg = await callback.message.answer(
+            "No Reviews", reply_markup=cart_back_menu(t)
+        )
+        await state.update_data(main_message_id=msg.message_id)
         return
 
     idx = callback_data.index % total
     review = await get_review_by_index(idx)
-    kb = reviews_kb(idx, total, contact_url="https://t.me/TGStoreLab")
+    kb = reviews_kb(idx, total, t, contact_url="https://t.me/TGStoreLab")
 
     # меняем картинку в том же сообщении
     await callback.message.edit_media(

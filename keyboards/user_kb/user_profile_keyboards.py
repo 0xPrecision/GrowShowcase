@@ -29,22 +29,55 @@ def profile_menu_keyboard(t, **_):
 
 
 def reviews_kb(
-    curr: int, total: int, contact_url: str | None = None
+    curr: int,
+    total: int,
+    t,
+    contact_url: str | None = None,
 ) -> InlineKeyboardMarkup:
-    prev_idx = (curr - 1) % total
-    next_idx = (curr + 1) % total
-
-    prev_btn = InlineKeyboardButton(
-        text="catalog_keyboards.buttons.pred",
-        callback_data=ReviewsCB(action="prev", index=prev_idx).pack(),
+    """
+    Клавиатура для навигации по отзывам:
+    - На первой странице: только "Вперёд", под ней "Контакт" и "Главное меню"
+    - На промежуточных: "Назад" и "Вперёд"
+    - На последней: только "Назад"
+    """
+    # Кнопки
+    btn_prev = InlineKeyboardButton(
+        text=t("catalog_keyboards.buttons.pred"),
+        callback_data=ReviewsCB(action="prev", index=curr - 1).pack(),
     )
-    next_btn = InlineKeyboardButton(
-        text="catalog_keyboards.buttons.vpered",
-        callback_data=ReviewsCB(action="next", index=next_idx).pack(),
+    btn_next = InlineKeyboardButton(
+        text=t("catalog_keyboards.buttons.vpered"),
+        callback_data=ReviewsCB(action="next", index=curr + 1).pack(),
     )
-    row = [prev_btn, next_btn]
 
-    if contact_url:
-        row.append(InlineKeyboardButton(text="contact_me", url=contact_url))
+    btn_contact = (
+        InlineKeyboardButton(text=t("contact_me"), url=contact_url)
+        if contact_url
+        else None
+    )
+    btn_home = InlineKeyboardButton(
+        text=t("catalog_keyboards.buttons.vyjti-v-glavnoe"),
+        callback_data="/start_admin",
+    )
 
-    return InlineKeyboardMarkup(inline_keyboard=[row])
+    # Определяем, какие кнопки показывать
+    keyboard: list[list[InlineKeyboardButton]] = []
+
+    if curr == 0:
+        # Первая страница
+        keyboard.append([btn_next])
+        if btn_contact:
+            keyboard.append([btn_contact])
+        keyboard.append([btn_home])
+
+    elif curr == total - 1:
+        # Последняя страница
+        keyboard.append([btn_prev])
+        keyboard.append([btn_home])
+
+    else:
+        # Промежуточные страницы
+        keyboard.append([btn_prev, btn_next])
+        keyboard.append([btn_home])
+
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
