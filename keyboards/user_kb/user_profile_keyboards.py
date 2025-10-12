@@ -57,7 +57,7 @@ def reviews_kb(
     )
     btn_home = InlineKeyboardButton(
         text=t("catalog_keyboards.buttons.vyjti-v-glavnoe"),
-        callback_data="/start_admin",
+        callback_data="menu_main",
     )
 
     # Определяем, какие кнопки показывать
@@ -65,9 +65,9 @@ def reviews_kb(
 
     if curr == 0:
         # Первая страница
-        if total > 0:
+        if total > 1:
             keyboard.append([btn_next])
-        elif btn_contact:
+        if btn_contact:
             keyboard.append([btn_contact])
         keyboard.append([btn_home])
 
