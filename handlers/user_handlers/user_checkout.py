@@ -1,7 +1,17 @@
+import asyncio
+import os
+from dotenv import load_dotenv
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import (
+    CallbackQuery,
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
+from config_data.bot_instance import bot
 from constants import EMOJI_MAP
 from database.crud import (
     create_order,
@@ -9,31 +19,33 @@ from database.crud import (
     add_to_cart,
     clear_cart,
     get_product_by_id,
+    get_order_items,
 )
+from payments.cryptomus_gateway import CryptomusGateway
+from payments.stripe_gateway import StripeGateway
 from states.user_states.order_states import OrderStates
-from keyboards.user_kb.order_keyboards import order_details_keyboard
 from keyboards.user_kb.user_checkout_keyboards import (
     payment_methods_keyboard,
     checkout_edit_keyboard,
     after_cancellation_kb,
     confirm_test_order_kb,
+    skip_comment_keyboard,
 )
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
-from utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message
 from utils.user_utils.universal_handlers import universal_exit, universal_name_handler
 from utils.user_utils.user_checkout_utils import (
     editing_name,
     editing_comment,
     editing_payment,
-    notify_admin_about_new_order,
+    process_comment,
 )
-from utils.user_utils.user_common_utils import (
-    start_manual_checkout,
-    send_step_and_cleanup,
-)
+from utils.user_utils.user_common_utils import start_manual_checkout
 from utils.user_utils.user_orders_utils import show_order_summary
 
+
 router = Router()
+load_dotenv()
 
 
 @router.callback_query(lambda c: c.data in ["menu_offers", "menu_main"])
@@ -48,10 +60,15 @@ async def checkout_exit_handler(callback: CallbackQuery, state: FSMContext, t):
 @router.callback_query(F.data == "menu_cart")
 async def show_demo_order(callback: CallbackQuery, t):
     product = await get_product_by_id(product_id=4)
+    if not product:
+        await callback.answer(
+            t("admin_catalog.messages.tovar-ne-najden"), show_alert=True
+        )
+        return
     label = EMOJI_MAP.get(product.id, "📦")
     caption = t("admin_catalog.misc.b-tovar-b-b-b-ostatok-kategoriya").format(
         product_name=f"{label} {product.name}",
-        price=format_price(product.price),
+        price=product.price,
         currency=t("currency"),
         description=t(product.description) or t("product.card.no_description"),
     )
@@ -83,7 +100,7 @@ async def place_an_order_handler(callback: CallbackQuery, t, state: FSMContext, 
     username = callback.from_user.username
     cart_items = await get_cart(user_id)
     if not cart_items:
-        await add_to_cart(user_id, product_id=4, quantity=1)
+        await add_to_cart(user_id, product_id=1, quantity=1)
 
     await state.update_data(
         cart=[
@@ -110,9 +127,9 @@ async def ask_nickname_handler(callback: CallbackQuery, state: FSMContext, t):
     await delete_request_and_user_message(callback.message, state)
     if callback.data == "use":
         nickname = f"Telegram @{callback.from_user.username or 'user'}"
-        await state.update_data(name=nickname)
+        await state.update_data(client_name=nickname)
         text = t("universal_handlers.misc.zapolnite-dannye-fio").format(name=nickname)
-        msg = await callback.message.answer(text, reply_markup=cart_back_menu(t))
+        msg = await callback.message.answer(text, reply_markup=skip_comment_keyboard(t))
         await state.set_state(OrderStates.waiting_for_comment)
     else:
         msg = await callback.message.answer(
@@ -141,24 +158,24 @@ async def edit_name_handler_order(message: Message, state: FSMContext, t):
     await editing_name(message, state, t)
 
 
-@router.message(OrderStates.waiting_for_comment)
-async def order_comment_handler(message: Message, state: FSMContext, t):
-    """
-    Saves the user_kb's comment and proceeds to payment method selection.
-    """
-    await delete_request_and_user_message(message, state)
-    await state.update_data(comment=message.text if message.text != "-" else "-")
-    data = await state.get_data()
-    text = t("user_checkout.misc.zapolnite-dannye-dlya-zakaza").format(
-        full_name=data.get("name"), comment=data.get("comment")
-    )
-    await send_step_and_cleanup(
-        message=message,
-        text=text,
+@router.callback_query(OrderStates.waiting_for_comment, F.data == "skip_comment")
+async def order_comment_skip(callback: CallbackQuery, state: FSMContext, t):
+    await process_comment(
         state=state,
-        reply_markup=payment_methods_keyboard(t),
+        t=t,
+        raw_comment="-",
+        send_obj=callback,
     )
-    await state.set_state(OrderStates.choosing_payment)
+
+
+@router.message(OrderStates.waiting_for_comment)
+async def order_comment_message(message: Message, state: FSMContext, t):
+    await process_comment(
+        state=state,
+        t=t,
+        raw_comment=message.text,
+        send_obj=message,
+    )
 
 
 @router.message(OrderStates.editing_comment)
@@ -175,16 +192,19 @@ async def choose_payment_method(callback: CallbackQuery, t, state: FSMContext, *
     Handles the user_kb's selection of payment method.
     """
     await delete_request_and_user_message(callback.message, state)
-    method = {
-        "pay_card": t("user_checkout_keyboards.buttons.kartoj-onlajn"),
+
+    METHOD_LABELS = {
+        "stripe": t("user_checkout_keyboards.buttons.kartoj-onlajn"),
         "pay_crypto": t("user_checkout_keyboards.buttons.crypto"),
-    }[callback.data]
-    if not method:
+    }
+    key = callback.data
+    if key not in METHOD_LABELS:
         await callback.answer(
             t("user_checkout.messages.neizvestnyj-sposob-oplaty"), show_alert=True
         )
         return
-    await state.update_data(payment_method=method)
+    label = METHOD_LABELS[key]
+    await state.update_data(payment_method=key, payment_label=label)
     await show_order_summary(callback, state, t)
     await callback.answer()
 
@@ -269,33 +289,175 @@ async def back_to_summary_callback(callback: CallbackQuery, state: FSMContext, t
 @router.callback_query(OrderStates.confirm, F.data == "confirm_order")
 async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, **_):
     """
-    Confirms checkout, adds the order to the database, clears the cart, and notifies the user_kb.
+    Финальный шаг чекаута:
+      - фиксируем заказ (pending) из корзины
+      - создаём платёжную сессию выбранным провайдером
+      - отправляем пользователю ссылку на оплату
+    Сообщения админу/клиенту после оплаты — из вебхука.
     """
     await delete_request_and_user_message(callback.message, state)
+
     user_id = callback.from_user.id
     data = await state.get_data()
-    bot = callback.bot
+
+    payment_method = (data.get("payment_method") or "").lower()
+    client_name = data.get("client_name")
+    comment = data.get("comment") or "-"
+    currency = (data.get("currency") or "USD").upper()
+    locale = data.get("locale")  # 'ru' | 'en' | 'auto'
+
+    # 1) Создаём заказ из корзины (pending) и очищаем корзину
     order = await create_order(
         user_id=user_id,
-        name=data.get("name"),
-        status="order.status.in_progress",
-        payment_method=data.get("payment_method"),
-        comment=data.get("comment"),
+        client_name=client_name,
+        payment_method=payment_method,
+        comment=comment,
+        currency=currency,
     )
-    await notify_admin_about_new_order(bot, order, t)
-    if not order:
-        await callback.message.answer(
-            t("user_checkout.messages.korzina-pusta"), reply_markup=cart_back_menu(t)
+
+    items_payload = []
+    if order:
+        order_items = await get_order_items(order)
+        items_payload = [
+            {
+                "title": it.title or "Item",
+                "unit_amount_cents": int(it.unit_amount_cents),
+                "quantity": int(it.quantity),
+            }
+            for it in order_items
+            if int(it.unit_amount_cents) > 0 and int(it.quantity) > 0
+        ]
+
+    if not order or not items_payload:
+        # если заказ уже создан, подчистим хвосты
+        if order:
+            try:
+                await order.delete()  # или: order.status = "failed"; await order.save()
+            except Exception:
+                pass
+        msg = await callback.message.answer(
+            t("user_checkout.messages.korzina-pusta"),
+            reply_markup=cart_back_menu(t),
         )
+        await state.update_data(main_message_id=msg.message_id)
         await state.clear()
         await callback.answer()
         return
-    await callback.message.answer(
-        t("user_checkout.messages.spasibo-vash-zakaz-oformlen"),
-        reply_markup=order_details_keyboard(t),
-    )
+
+    # 3) Роутинг по способу оплаты
+    try:
+        if payment_method == "stripe":
+            gw = StripeGateway()
+            res = gw.create_checkout(
+                order_id=order.order_uid,
+                currency=order.currency,
+                items=items_payload,  # детальный чек
+                locale=locale,
+                metadata={
+                    "cart_hash": order.meta.get("cart_hash") if order.meta else "",
+                    "source": "telegram",
+                },
+            )
+            # сохраняем айдишники Stripe для сверок и последующих вебхуков
+            order.stripe_session_id = res.get("session_id") or order.stripe_session_id
+            order.stripe_payment_intent = (
+                res.get("payment_intent") or order.stripe_payment_intent
+            )
+            order.stripe_customer = res.get("customer") or order.stripe_customer
+            await order.save()
+
+            kb = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text=t("user_checkout.buttons.pay_now"), url=res["url"]
+                        )
+                    ],
+                    [
+                        InlineKeyboardButton(
+                            text=t("catalog_keyboards.buttons.otmena"),
+                            callback_data="cancel_order",
+                        )
+                    ],
+                ]
+            )
+            msg = await callback.message.answer(
+                t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
+                reply_markup=kb,
+            )
+            await asyncio.sleep(40)
+            await bot.delete_message(chat_id=order.user.id, message_id=msg.message_id)
+
+        # Если параллельно поддерживаешь Cryptomus — снимай комментарий и добавляй аналогичный блок
+        elif payment_method == "pay_crypto":
+            cg = CryptomusGateway()
+            description = t("crypto_payment_alert")
+            cp = await cg.create_invoice(
+                amount="1.00",
+                currency=order.currency,  # "USD"
+                order_id=order.order_uid,
+                title=f"{order.name or "Order"}\n{description}",
+                url_success=f"{os.getenv('PAY_SUCCESS_URL')}?order_id={order.order_uid}",
+                url_return=f"{os.getenv('PAY_CANCEL_URL')}?order_id={order.order_uid}",
+                url_callback=f"{os.getenv('TELEGRAM_WEBHOOK_URL')}/webhook/cryptomus",
+            )
+
+            pay_url = cp.get("url") or cp.get("result", {}).get("url")
+            invoice_uuid = (
+                cp.get("uuid")
+                or cp.get("payment_id")
+                or cp.get("result", {}).get("uuid")
+            )
+
+            if not pay_url or not invoice_uuid:
+                await callback.message.answer(
+                    t("user_checkout.messages.oshibka-pri-sozdanii-platezha"),
+                    reply_markup=cart_back_menu(t),
+                )
+                await state.clear()
+                await callback.answer()
+                return
+
+            order.provider = "cryptomus"
+            order.txid = str(invoice_uuid)
+            await order.save()
+
+            await callback.message.answer(
+                t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            InlineKeyboardButton(
+                                text=t("user_checkout.buttons.pay_now"), url=pay_url
+                            )
+                        ]
+                    ]
+                ),
+            )
+
+        else:
+            # неизвестный способ оплаты
+            msg = await callback.message.answer(
+                t("user_checkout.messages.neizvestnyj-sposob-oplaty"),
+                reply_markup=cart_back_menu(t),
+            )
+            await state.update_data(main_message_id=msg.message_id)
+            await state.clear()
+            await callback.answer()
+            return
+
+    except Exception as e:
+        # не удалось создать платёжную сессию
+        msg = await callback.message.answer(
+            t("user_checkout.messages.oshibka-pri-sozdanii-platezha"),
+            reply_markup=cart_back_menu(t),
+        )
+        await state.update_data(main_message_id=msg.message_id)
+        await state.clear()
+        await callback.answer()
+        return
+
     await state.clear()
-    await callback.answer()
 
 
 @router.callback_query(F.data == "cancel_order")

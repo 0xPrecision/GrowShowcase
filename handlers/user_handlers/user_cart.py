@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -48,7 +49,7 @@ async def add_to_cart_handler(callback: CallbackQuery, t, **_) -> None:
     :return: None
     """
     user_id = callback.from_user.id
-    admin_id = -1003030319198
+    admin_id = os.getenv("GROUP_ID")
     username = callback.from_user.username
     product_id = int(callback.data.split("_")[1])
     products = await get_all_products()

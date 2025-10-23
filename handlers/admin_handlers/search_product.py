@@ -12,7 +12,7 @@ from keyboards.admin.catalog_keyboards import (
     show_products_for_search,
 )
 from states.admin_states.product_states import ProductSearchStates
-from utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message
 from .admin_access import admin_only
 
 router = Router()
@@ -56,7 +56,7 @@ async def search_product_query(message: Message, t, state: FSMContext, **_):
         product = products[0]
         await product.fetch_related("category")
         product_name = product.name
-        pr_price = format_price(product.price)
+        pr_price = product.price
         pr_descr = t(product.description) or "—"
         label = EMOJI_MAP.get(product.id, "📦")
         text = t("admin_catalog.misc.b-tovar-b-b-b-ostatok-kategoriya").format(

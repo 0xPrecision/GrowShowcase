@@ -9,7 +9,7 @@ from database.crud import (
     get_products_page,
 )
 from keyboards.admin.catalog_keyboards import product_admin_keyboard
-from utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message
 
 from .admin_access import admin_only
 
@@ -44,14 +44,14 @@ async def admin_product_detail(callback: CallbackQuery, t, state: FSMContext, **
         )
         return
     product_name = product.name
-    pr_price = format_price(product.price)
+    pr_price = product.price
     pr_descr = t(product.description) or "—"
     label = EMOJI_MAP.get(product.id, "📦")
 
     text = t("admin_catalog.misc.b-tovar-b-b-b-ostatok-kategoriya").format(
         product_name=f"{label} {product_name}",
-        price=pr_price,
-        currency=t("currency"),
+        currency=t("currency") if product.id != 3 else "",
+        price=pr_price if product.id != 3 else f"from ${pr_price}",
         description=pr_descr,
     )
     if product.photo:

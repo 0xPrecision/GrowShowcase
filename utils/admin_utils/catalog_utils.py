@@ -9,7 +9,7 @@ from keyboards.admin.catalog_keyboards import (
     ask_of_create_product,
     products_list_keyboard,
 )
-from utils.common_utils import format_price, delete_request_and_user_message
+from utils.common_utils import delete_request_and_user_message
 
 
 def get_product_short_info(product, t) -> str:
@@ -19,7 +19,7 @@ def get_product_short_info(product, t) -> str:
     :param product: Product object.
     :return: String like "Name | Price".
     """
-    return f'{product.name} | {format_price(product.price)} {t("currency")}'
+    return f'{product.name} | {product.price} {t("currency")}'
 
 
 async def get_products_info(

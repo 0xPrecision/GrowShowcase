@@ -41,7 +41,7 @@ async def text_catch_all_handler(message: Message, t, state: FSMContext, **_):
     Catches any text when only a callback button is expected.
     Shows an alert and does not change the FSM state.
     """
-    if message.text != "/start_admin":
+    if message.text not in ["/start_admin", "/start"]:
         await delete_user_message_safe(message)
         msg = await message.answer(t("user_menu.messages.ispolzujte-knopki-vyshe"))
         await state.update_data(main_message_id=msg.message_id)

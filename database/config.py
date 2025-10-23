@@ -1,6 +1,9 @@
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/shop.db")
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 TORTOISE_ORM = {
     "connections": {

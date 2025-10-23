@@ -3,7 +3,6 @@ from typing import List, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from constants import ORDER_STATUSES
-from utils.common_utils import format_price
 
 
 def orders_list_keyboard(
@@ -78,7 +77,7 @@ def show_orders_for_search(orders, t) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=f'id_#{o.id} | {o.name} | {format_price(o.total_price)} {t("currency")}',
+                    text=f'id_#{o.id} | {o.name} | {o.total_price} {t("currency")}',
                     callback_data=f"admin_order_detail:{o.id}",
                 )
             ]

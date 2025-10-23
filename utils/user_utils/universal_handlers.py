@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from handlers.user_handlers.user_catalog import show_products
+from keyboards.user_kb.user_checkout_keyboards import skip_comment_keyboard
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
 from keyboards.user_kb.user_main_menu import main_menu
 from states.user_states.order_states import OrderStates
@@ -18,10 +19,12 @@ async def universal_name_handler(message: Message, state: FSMContext, t) -> None
     Messages are always cleared.
     """
     await delete_request_and_user_message(message, state)
-    name = message.text
-    await state.update_data(name=name)
-    text = t("universal_handlers.misc.zapolnite-dannye-fio").format(name=name)
-    await send_step_and_cleanup(message, text, state, reply_markup=cart_back_menu(t))
+    client_name = message.text
+    await state.update_data(client_name=client_name)
+    text = t("universal_handlers.misc.zapolnite-dannye-fio").format(name=client_name)
+    await send_step_and_cleanup(
+        message, text, state, reply_markup=skip_comment_keyboard(t)
+    )
     await state.set_state(OrderStates.waiting_for_comment)
 
 

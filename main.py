@@ -19,7 +19,7 @@ async def main():
     Main entry point of the bot: initializes the database, starts the bot,
     and properly closes connections.
     """
-    storage = RedisStorage.from_url("redis://redis:6379/0")
+    storage = RedisStorage.from_url("redis://localhost:6379/0")
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -41,6 +41,7 @@ async def main():
 
     logging.info("Bot started polling")
     try:
+        await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot)
     finally:
         await close_db()

@@ -5,7 +5,6 @@ from keyboards.admin.order_keyboards import (
     change_order_status,
     orders_list_keyboard,
 )
-from utils.common_utils import format_price
 from database.crud import get_order_items, get_orders_page
 from database.models import Order
 
@@ -64,14 +63,12 @@ async def admin_show_order_summary(
         order_info += t("order.info.item_line").format(
             product=item.product.name,
             qty=item.quantity,
-            price=format_price(price),
+            price=price,
             currency=t("currency"),
         )
 
     order_info += (
-        t("order.info.total").format(
-            total=format_price(order.total_price), currency=t("currency")
-        )
+        t("order.info.total").format(total=order.total_price, currency=t("currency"))
         + t("order.info.payment").format(method=order.payment_method)
         + t("order.info.comment").format(comment=order.comment or "-")
     )

@@ -82,13 +82,38 @@ def payment_methods_keyboard(t, **_):
             [
                 InlineKeyboardButton(
                     text=t("user_checkout_keyboards.buttons.kartoj-onlajn"),
-                    callback_data="pay_card",
+                    callback_data="stripe",
                 )
             ],
             [
                 InlineKeyboardButton(
                     text=t("user_checkout_keyboards.buttons.crypto"),
                     callback_data="pay_crypto",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("user_cart_keyboards.buttons.v-katalog"),
+                    callback_data="menu_offers",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=t("order_keyboards.buttons.v-glavnoe-menyu"),
+                    callback_data="menu_main",
+                )
+            ],
+        ]
+    )
+
+
+def skip_comment_keyboard(t, **_):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=t("skip_comment"),
+                    callback_data="skip_comment",
                 )
             ],
             [

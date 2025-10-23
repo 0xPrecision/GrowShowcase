@@ -6,7 +6,6 @@ from keyboards.user_kb.user_catalog_keyboards import (
     show_product_info_kb,
     show_products_keyboard,
 )
-from utils.common_utils import format_price
 from database.crud import get_all_products
 from database.models import Product
 
@@ -18,6 +17,13 @@ async def show_products(callback: CallbackQuery, t, **_) -> None:
     Displays the list of products.
     """
     products = await get_all_products()
+    if not products:
+        await callback.message.answer(
+            text=t("products_are_absent"),
+            reply_markup=show_products_keyboard(products, t),
+        )
+        return
+
     await callback.message.answer(
         t("user_catalog.messages.vyberite-kategoriyu"),
         reply_markup=show_products_keyboard(products[:3], t),
@@ -51,8 +57,8 @@ async def show_product_info(callback: CallbackQuery, t, **_):
 
     caption = t("admin_catalog.misc.b-tovar-b-b-b-ostatok-kategoriya").format(
         product_name=f"{label} {product.name}",
-        price=format_price(product.price),
-        currency=t("currency"),
+        price=product.price if product.id != 3 else f"from ${product.price}",
+        currency=t("currency") if product.id != 3 else "",
         description=t(product.description) or t("product.card.no_description"),
     )
     kb = show_product_info_kb(product.id, product.name, source, t)

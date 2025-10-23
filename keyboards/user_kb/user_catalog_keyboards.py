@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from constants import EMOJI_MAP
-from utils.common_utils import format_price, format_product_name
+from utils.common_utils import format_product_name
 
 
 def show_products_keyboard(products: list, t, **_) -> InlineKeyboardMarkup:
@@ -14,7 +14,9 @@ def show_products_keyboard(products: list, t, **_) -> InlineKeyboardMarkup:
     rows = [
         [
             InlineKeyboardButton(
-                text=f"{EMOJI_MAP.get(product.id, "🗂️")} {format_product_name(product.name, 70)} — {t("currency")}{format_price(product.price)}",
+                text=f"{EMOJI_MAP.get(product.id, "🗂️")} "
+                f"{format_product_name(product.name, 70)} — "
+                f"{t("currency") if product.id !=3 else ""}{product.price if product.id !=3 else f"from ${product.price}"}",
                 callback_data=f"product_{product.id}_offers",
             ),
         ]

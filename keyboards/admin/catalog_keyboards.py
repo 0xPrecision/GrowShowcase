@@ -3,7 +3,6 @@ from typing import List, Tuple
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from database.crud import get_product_by_id
-from utils.common_utils import format_price
 
 
 def back_menu(t, **_) -> InlineKeyboardMarkup:
@@ -192,7 +191,7 @@ def show_products_for_search(products, t) -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(
-                text=f"#_id {p.id} | {p.name} | {format_price(p.price)} {t("currency")} | {p.status_label(t)}",
+                text=f"#_id {p.id} | {p.name} | {p.price} {t("currency")} | {p.status_label(t)}",
                 callback_data=f"admin_product_detail:{p.id}",
             )
         ]

@@ -1,5 +1,6 @@
-from decimal import Decimal
-from typing import Any, List, Optional, Tuple
+from decimal import Decimal, ROUND_HALF_UP
+from typing import List, Optional, Tuple
+from uuid import uuid4
 
 from database.models import Cart, Order, OrderItem, Product, User, Review
 
@@ -9,14 +10,11 @@ from database.models import Cart, Order, OrderItem, Product, User, Review
 
 async def get_or_create_user_profile(user_id: int) -> Optional[User]:
     """
-    Returns the user_kb profile by Telegram ID.
-    If the profile does not exist, fills fields with default values.
-    :param user_id: Telegram user_kb ID.
-    :return: User object or None.
+    Возвращает профиль по Telegram ID или создаёт новый.
     """
     user = await User.get_or_none(id=user_id)
     if not user:
-        user = await User.create(id=user_id, full_name="", phone="", address="")
+        user = await User.create(id=user_id)
     return user
 
 
@@ -74,25 +72,17 @@ async def create_product(
     )
 
 
-async def update_product(product_id: int, **fields: Any):
+async def update_product(product_id: int, **fields) -> int:
     """
-    Updates selected product fields by product_id.
-    :param product_id: Product ID.
-    :param fields: Key-value pairs where the key is a Product field and the value is the new value.
-    :return: Number of updated rows (int)
+    Обновляет поля продукта по id.
+    ВНИМАНИЕ: поля должны существовать в модели Product.
     """
-    # Если в fields есть category как объект — вытаскиваем id:
-    if "category" in fields and fields["category"]:
-        category = fields["category"]
-        if hasattr(category, "id"):
-            fields["category_id"] = category.id
-        else:
-            # Если пришло строкой (название), лучше получить объект категории заранее!
-            raise ValueError("category должен быть объектом Category")
-        del fields["category"]
-
-    updated_count = await Product.filter(id=product_id).update(**fields)
-    return updated_count
+    # выкидываем любые неожиданные ключи, чтобы не уронить апдейт
+    allowed = {"name", "description", "price", "photo", "is_active", "sku"}
+    clean = {k: v for k, v in fields.items() if k in allowed}
+    if not clean:
+        return 0
+    return await Product.filter(id=product_id).update(**clean)
 
 
 async def get_all_products() -> List[Product]:
@@ -101,30 +91,6 @@ async def get_all_products() -> List[Product]:
     :return: List of Product objects.
     """
     return await Product.filter(is_active=True).all()
-
-
-async def get_products_page_by_category(
-    category_id: int, page: int = 1, page_size: int = 10
-):
-    """
-    Retrieves products of a given category with pagination.
-    :param category_id: Category name
-    :param page: Page (from 1)
-    :param page_size: Number of products per page
-    :return: (list of products, has_next, has_prev)
-    """
-    total = await Product.filter(category_id=category_id, is_active=True).count()
-    total_pages = (total + page_size - 1) // page_size
-    skip = (page - 1) * page_size
-    products = (
-        await Product.filter(category_id=category_id, is_active=True)
-        .order_by("-id")
-        .offset(skip)
-        .limit(page_size)
-    )
-    has_prev = page > 1
-    has_next = page < total_pages
-    return products, has_next, has_prev
 
 
 async def get_product_by_id(product_id: int) -> Optional[Product]:
@@ -139,8 +105,9 @@ async def get_product_by_id(product_id: int) -> Optional[Product]:
 async def get_products_page(
     page: int = 1, page_size: int = 10
 ) -> Tuple[List[Product], bool, bool]:
-    total = await Product.filter(is_active=True).all().count()
+    total = await Product.filter(is_active=True).count()  # ← без .all()
     total_pages = (total + page_size - 1) // page_size
+    page = max(1, page)
     skip = (page - 1) * page_size
     products = (
         await Product.filter(is_active=True)
@@ -187,13 +154,10 @@ async def get_cart(user_id: int) -> List[Cart]:
 
 async def remove_from_cart(user_id: int, product_id: int) -> None:
     """
-    Removes a product item from the user's cart.
-    :param user_id: Telegram user ID.
-    :param product_id: Product ID to remove from the cart.
-    :return: None
+    Удаляет позицию из корзины.
     """
     user = await get_or_create_user_profile(user_id)
-    await Cart.filter(user=user, product=product_id).delete()
+    await Cart.filter(user=user, product_id=product_id).delete()
 
 
 async def clear_cart(user_id: int) -> None:
@@ -209,89 +173,142 @@ async def clear_cart(user_id: int) -> None:
 # -------- ORDERS --------
 
 
+def _to_cents(x) -> int:
+    if isinstance(x, Decimal):
+        v = x
+    else:
+        v = Decimal(str(x))
+    return int((v * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
 async def create_order(
     user_id: int,
-    name: str = "-",
-    status: str = None,
-    payment_method: str = "-",
+    client_name: Optional[str],
+    payment_method: str,
     comment: str = "-",
+    currency: str = "USD",
+    order_uid: Optional[str] = None,
+    name: Optional[str] = None,
 ) -> Optional[Order]:
-    """
-    Creates an order from the user_kb's cart.
-    :param user_id: User ID.
-    :param name: User full name.
-    :param status: Order status.
-    :param payment_method: Payment method.
-    :param comment: Comment.
-    :return: Order object or None if the cart is empty.
-    """
     user = await get_or_create_user_profile(user_id)
+
     cart_items = await Cart.filter(user=user).prefetch_related("product")
     if not cart_items:
         return None
+
+    items_count = 0
+    total_cents = 0
+    snapshot = []
+    for it in cart_items:
+        product = it.product
+        title = getattr(product, "name", None) or getattr(product, "title", "Item")
+        qty = int(getattr(it, "quantity", 1))
+        unit_price = getattr(product, "price", 0)
+        unit_cents = _to_cents(unit_price)
+
+        if qty <= 0 or unit_cents <= 0:
+            continue
+
+        items_count += qty
+        total_cents += unit_cents * qty
+
+        snapshot.append(
+            {
+                "title": title,
+                "product_id": getattr(product, "id", None),
+                "unit_amount_cents": unit_cents,
+                "quantity": qty,
+                "meta": {"sku": getattr(product, "sku", None)},  # ← sku в meta
+            }
+        )
+
+    if not snapshot:
+        return None
+
+    currency = (currency or "USD").upper()
+    order_uid = order_uid or uuid4().hex[:16]
+    name = name or (f"Cart ({items_count} items)" if items_count > 1 else "Order")
+
     order = await Order.create(
         user=user,
+        client_name=client_name,
         name=name,
-        status=status,
-        total_price=0,
+        amount_cents=total_cents,
+        currency=currency,
+        status="pending",
+        provider=payment_method.lower(),
+        order_uid=order_uid,
         payment_method=payment_method,
         comment=comment,
+        meta={
+            "items_count": items_count,
+            "cart_hash": uuid4().hex[:12],
+            "source": "telegram",
+            "schema_version": 1,
+        },
     )
-    total = 0
-    for item in cart_items:
+
+    for snap in snapshot:
         await OrderItem.create(
             order=order,
-            product=item.product,
-            quantity=item.quantity,
-            price_at_order=item.product.price,
+            title=snap["title"],
+            product_id=snap["product_id"],
+            unit_amount_cents=snap["unit_amount_cents"],
+            quantity=snap["quantity"],
+            meta=snap["meta"],  # здесь лежит sku
         )
-        total += Decimal(item.product.price) * item.quantity
-    order.total_price = total
-    await order.save()
+
     await clear_cart(user_id)
     return order
 
 
-async def get_orders(user_id: int = None) -> List[Order]:
+async def get_orders(user_id: int | None = None) -> List[Order]:
     """
-    Returns the list of user_kb orders.
-    :param user_id: User ID.
-    :return: List of orders (Order).
+    Возвращает список заказов. Для конкретного пользователя — его заказы,
+    иначе — все, отсортированные по дате.
     """
+    qs = Order.all().order_by("-created_at")
     if user_id:
-        return await Order.filter(user_id=user_id)
-    else:
-        return await Order.all().order_by("-created_at")
+        qs = qs.filter(user_id=user_id)
+    return await qs.prefetch_related("items", "user")
 
 
 async def get_order_items(order: Order) -> List[OrderItem]:
     """
-    Returns the items of a given order.
-    :param order: Order object.
-    :return: List of order items (OrderItem).
+    Возвращает позиции заказа.
     """
-    return await OrderItem.filter(order=order).prefetch_related("product").all()
+    return await OrderItem.filter(order=order).all()
 
 
 async def get_order_by_id(order_id: int) -> Optional[Order]:
     """
-    Returns an order by its ID.
-    :param order_id: Order ID.
-    :return: Order object or None.
+    Возвращает заказ по id.
     """
     order = await Order.get_or_none(id=order_id)
     if order:
-        await order.fetch_related("user")
+        await order.fetch_related("user", "items")
     return order
 
 
 async def get_orders_page(
     page: int = 1, page_size: int = 10
 ) -> Tuple[List[Order], bool, bool]:
+    """
+    Пагинация заказов по дате убыв.
+    """
     total = await Order.all().count()
     total_pages = (total + page_size - 1) // page_size
+    page = max(1, page)
     skip = (page - 1) * page_size
-    orders = await Order.all().order_by("-created_at").offset(skip).limit(page_size)
+
+    orders = (
+        await Order.all()
+        .order_by("-created_at")
+        .offset(skip)
+        .limit(page_size)
+        .prefetch_related("items", "user")
+    )
+
     has_prev = page > 1
     has_next = page < total_pages
     return orders, has_next, has_prev

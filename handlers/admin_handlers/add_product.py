@@ -11,7 +11,7 @@ from keyboards.admin.catalog_keyboards import (
     create_or_cancel_product_kb,
     admin_ask_new_product,
 )
-from utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message
 from .admin_access import admin_only
 
 router = Router()
@@ -109,7 +109,7 @@ async def add_product_photo(message: Message, state: FSMContext, t):
     data = await state.get_data()
 
     name = data.get("name")
-    price = format_price(data.get("price"))
+    price = data.get("price")
     descr = data.get("description") if data.get("description") else "-"
     img = "✅" if data.get("photo") else "-"
 
@@ -117,7 +117,7 @@ async def add_product_photo(message: Message, state: FSMContext, t):
         name=name,
         price=price,
         currency=t("currency"),
-        descr=descr,
+        descr=t(descr),
         img=img,
     )
 

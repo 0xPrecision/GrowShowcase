@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Callable
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -57,28 +57,30 @@ def show_orders_keyboard(orders: List[Order], t, **_) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def order_details_keyboard(t, **_) -> InlineKeyboardMarkup:
+def order_details_keyboard(
+    *,
+    t: Optional[Callable[[str], str]] = None,
+    text_order: Optional[str] = None,
+    text_menu: Optional[str] = None,
+) -> InlineKeyboardMarkup:
     """
-    Creates a keyboard for detailed order view.
+    Клавиатура для детального просмотра заказа.
+    Вариант A: передай t (i18n), ключи возьмём внутри.
+    Вариант B: передай готовые текстовые лейблы.
 
-    Buttons: return to the list of orders and go to the main menu.
-
-    :return: InlineKeyboardMarkup — inline keyboard.
+    Исключение, если не удалось получить тексты.
     """
+    if t is not None:
+        text_order = t("order_keyboards.buttons.k-spisku-zakazov")
+        text_menu = t("order_keyboards.buttons.v-glavnoe-menyu")
+    else:
+        if not text_order or not text_menu:
+            raise ValueError("Either provide t or both text_order and text_menu")
+
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=t("order_keyboards.buttons.k-spisku-zakazov"),
-                    callback_data="menu_orders",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text=t("order_keyboards.buttons.v-glavnoe-menyu"),
-                    callback_data="menu_main",
-                )
-            ],
+            [InlineKeyboardButton(text=text_order, callback_data="menu_orders")],
+            [InlineKeyboardButton(text=text_menu, callback_data="menu_main")],
         ]
     )
 

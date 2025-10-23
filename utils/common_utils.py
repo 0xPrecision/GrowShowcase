@@ -1,4 +1,3 @@
-from decimal import Decimal
 from typing import List, Tuple
 
 from aiogram.fsm.context import FSMContext
@@ -31,8 +30,8 @@ def format_product_name(name: str, max_len: int = 20) -> str:
     return name if len(name) <= max_len else name[: max_len - 3] + "..."
 
 
-def format_price(price) -> str:
-    return f"{Decimal(price):,.0f}".replace(",", " ")
+# def format_price(price) -> str:
+#     return f"{Decimal(price):,.0f}".replace(",", " ")
 
 
 async def delete_request_and_user_message(

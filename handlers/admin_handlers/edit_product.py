@@ -11,7 +11,7 @@ from keyboards.admin.catalog_keyboards import (
 from database.crud import get_product_by_id, update_product
 
 from states.admin_states.product_states import EditProductStates
-from utils.common_utils import delete_request_and_user_message, format_price
+from utils.common_utils import delete_request_and_user_message
 from .admin_access import admin_only
 
 router = Router()
@@ -172,7 +172,7 @@ async def show_edit_product_summary(
 
     text = t("admin_catalog.misc.b-tovar-b-b-b-ostatok-kategoriya").format(
         product_name=f"{label} {data["name"]}",
-        price=format_price(data["price"]),
+        price=data["price"],
         currency=t("currency"),
         description=t(data["description"]) or "—",
     )

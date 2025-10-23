@@ -15,7 +15,6 @@ from keyboards.user_kb.order_keyboards import (
 from utils.common_utils import (
     delete_request_and_user_message,
     format_product_name,
-    format_price,
 )
 
 
@@ -44,7 +43,7 @@ async def show_orders_menu(
             date=order.created_at.strftime(t("date_format")),
             status=t(order.status),
             currency=t("currency"),
-            total=format_price(order.total_price),
+            total=order.total_price,
         )
     text += t("orders.list.footer")
     await callback.message.answer(text, reply_markup=show_orders_keyboard(orders, t))
@@ -61,13 +60,13 @@ async def get_order_details(order_id: int, t, **_) -> Dict:
     if not order:
         return {
             "text": t("admin_orders.messages.zakaz-ne-najden"),
-            "keyboard": order_details_keyboard(t),
+            "keyboard": order_details_keyboard(t=t),
         }
     order_items = await get_order_items(order)
     total = sum([item.quantity * Decimal(item.product.price) for item in order_items])
     items_text = "\n".join(
         [
-            f'• {format_product_name(item.product.name)} — {item.quantity} x {t("currency")}{format_price(item.product.price)} = {t("currency")}{format_price(item.quantity * Decimal(item.product.price))}'
+            f'• {format_product_name(item.product.name)} — {item.quantity} x {t("currency")}{item.product.price} = {t("currency")}{item.quantity * Decimal(item.product.price)}'
             for item in order_items
         ]
     )
@@ -80,10 +79,10 @@ async def get_order_details(order_id: int, t, **_) -> Dict:
         payment=order.payment_method or "-",
         items=items_text,
         currency=t("currency"),
-        total=format_price(total),
+        total=total,
     )
 
-    return {"text": text, "keyboard": order_details_keyboard(t)}
+    return {"text": text, "keyboard": order_details_keyboard(t=t)}
 
 
 async def show_order_summary(message_or_callback, state: FSMContext, t) -> None:
@@ -95,8 +94,8 @@ async def show_order_summary(message_or_callback, state: FSMContext, t) -> None:
     user_id = message_or_callback.from_user.id
     data = await state.get_data()
     cart_items = await get_cart(user_id)
-    client = data.get("name") or "-"
-    pay = data.get("payment_method") or "-"
+    client = data.get("client_name") or "-"
+    pay = data.get("payment_label") or "-"
     comment = data.get("comment") or "-"
 
     summary = t("checkout.summary.header").format(
@@ -113,11 +112,11 @@ async def show_order_summary(message_or_callback, state: FSMContext, t) -> None:
         pr_sum = price * qty
         total += pr_sum
         summary += t("checkout.summary.item_line").format(
-            name=name, qty=qty, line_total=format_price(pr_sum), currency=t("currency")
+            name=name, qty=qty, line_total=pr_sum, currency=t("currency")
         )
 
     summary += t("checkout.summary.total_block").format(
-        total=format_price(total), currency=t("currency")
+        total=total, currency=t("currency")
     )
 
     summary += t("checkout.summary.hint")
