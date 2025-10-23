@@ -100,7 +100,7 @@ async def place_an_order_handler(callback: CallbackQuery, t, state: FSMContext, 
     username = callback.from_user.username
     cart_items = await get_cart(user_id)
     if not cart_items:
-        await add_to_cart(user_id, product_id=1, quantity=1)
+        await add_to_cart(user_id, product_id=4, quantity=1)
 
     await state.update_data(
         cart=[

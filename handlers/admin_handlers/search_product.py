@@ -54,7 +54,6 @@ async def search_product_query(message: Message, t, state: FSMContext, **_):
         return
     if len(products) == 1:
         product = products[0]
-        await product.fetch_related("category")
         product_name = product.name
         pr_price = product.price
         pr_descr = t(product.description) or "—"
