@@ -4,12 +4,7 @@ from dotenv import load_dotenv
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    CallbackQuery,
-    Message,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-)
+from aiogram.types import (CallbackQuery, Message)
 
 from config_data.bot_instance import bot
 from constants import EMOJI_MAP
@@ -29,7 +24,7 @@ from keyboards.user_kb.user_checkout_keyboards import (
     checkout_edit_keyboard,
     after_cancellation_kb,
     confirm_test_order_kb,
-    skip_comment_keyboard,
+    skip_comment_keyboard, to_payment_kb,
 )
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
 from utils.common_utils import delete_request_and_user_message
@@ -365,25 +360,10 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
             )
             order.stripe_customer = res.get("customer") or order.stripe_customer
             await order.save()
-
-            kb = InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(
-                            text=t("user_checkout.buttons.pay_now"), url=res["url"]
-                        )
-                    ],
-                    [
-                        InlineKeyboardButton(
-                            text=t("catalog_keyboards.buttons.otmena"),
-                            callback_data="cancel_order",
-                        )
-                    ],
-                ]
-            )
+            pay_url = res["url"]
             msg = await callback.message.answer(
                 t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
-                reply_markup=kb,
+                reply_markup=to_payment_kb(pay_url, t),
             )
             await asyncio.sleep(40)
             await bot.delete_message(chat_id=order.user.id, message_id=msg.message_id)
@@ -424,16 +404,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
 
             await callback.message.answer(
                 t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
-                reply_markup=InlineKeyboardMarkup(
-                    inline_keyboard=[
-                        [
-                            InlineKeyboardButton(
-                                text=t("user_checkout.buttons.pay_now"), url=pay_url
-                            )
-                        ]
-                    ]
-                ),
-            )
+                reply_markup=to_payment_kb(pay_url, t))
 
         else:
             # неизвестный способ оплаты
