@@ -475,6 +475,14 @@ async def success(order_id: str = ""):
 async def cancel(order_id: str = ""):
     return _tg_redirect_html(BOT_USERNAME, order_id)
 
+@app.get("/pay/success")
+async def pay_success_alias(order_id: str = ""):
+    return await success(order_id)  # reuse
+
+@app.get("/pay/cancel")
+async def pay_cancel_alias(order_id: str = ""):
+    return await cancel(order_id)   # reuse
+
 
 # -------------------------
 # Cryptomus webhook
