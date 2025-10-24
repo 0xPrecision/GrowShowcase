@@ -119,7 +119,8 @@ class Order(Model):
     payment_method = fields.CharField(max_length=64, null=True)
     comment = fields.TextField(null=True)
     meta = fields.JSONField(null=True)
-    notified_user = fields.BooleanField(default=False, null=True)
+    notified_paid = fields.BooleanField(default=False, null=True)
+    notified_cancel = fields.BooleanField(default=False, null=True)
 
     class Meta:
         table = "orders"

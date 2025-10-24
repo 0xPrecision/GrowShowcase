@@ -1,9 +1,10 @@
 {
-  "skip_comment": "Skip",
+  "stripe_payment_message": "DEMO CARD PAYMENT\nNo charges will be made. Test card: 4242 4242 4242 4242\nExpiry: any future month/year, CVC: 123.\nBy continuing, you will be redirected to Stripe’s test checkout.",
+  "skip_comment": "▶️ Skip",
   "crypto_payment_alert": "Discounted price to offset possible network/withdrawal fees. Your wallet/exchange may add its own fee. You don’t need to add extra on this page.",
   "user_checkout.messages.oplata_otmenena": "🚫 Payment canceled. Order {order_id} was not charged. You can return to the menu and try again.",
   "user_checkout.messages.oplata-v-processe": "⏳ Your payment is being processed. We’ll notify you as soon as it’s confirmed.",
-  "user_checkout.messages.perenapravlyaem-na-oplatu_stripe": "✅ We’ve created a secure checkout. Tap the button to pay.",
+  "user_checkout.messages.perenapravlyaem-na-oplatu_stripe": "Discounted price to offset possible network/withdrawal fees. Your wallet/exchange may add its own fee. You don’t need to add extra on this page.\n\n✅ We’ve created a secure checkout. Tap the button to pay.",
   "user_checkout.buttons.pay_now": "Proceed to payment ➡️",
   "products_are_absent": "Plans & pricing are on the way.\nCheck back soon or message us here if you need a consultation now.",
   "add_review_picture": "Add screenshot",
@@ -167,5 +168,5 @@
   "user_menu.messages.ispolzujte-knopki-vyshe": "Use the buttons above 👆",
   "user_profile_keyboards.buttons.fio": "Contact method",
   "user_profile_keyboards.buttons.moi-dannye": "⭐️ Reviews & Feedback",
-  "user_checkout_keyboards.buttons.kartoj-onlajn": "💳 Pay by card"
+  "user_checkout_keyboards.buttons.kartoj-onlajn": "💳 Pay by test card"
 }

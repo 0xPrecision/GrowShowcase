@@ -168,14 +168,11 @@ def checkout_edit_keyboard(t, **_):
         ]
     )
 
+
 def to_payment_kb(url, t):
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=t("user_checkout.buttons.pay_now"), url=url
-                )
-            ],
+            [InlineKeyboardButton(text=t("user_checkout.buttons.pay_now"), url=url)],
             [
                 InlineKeyboardButton(
                     text=t("catalog_keyboards.buttons.otmena"),

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (CallbackQuery, Message)
+from aiogram.types import CallbackQuery, Message
 
 from config_data.bot_instance import bot
 from constants import EMOJI_MAP
@@ -24,7 +24,8 @@ from keyboards.user_kb.user_checkout_keyboards import (
     checkout_edit_keyboard,
     after_cancellation_kb,
     confirm_test_order_kb,
-    skip_comment_keyboard, to_payment_kb,
+    skip_comment_keyboard,
+    to_payment_kb,
 )
 from keyboards.user_kb.user_common_keyboards import cart_back_menu
 from utils.common_utils import delete_request_and_user_message
@@ -362,13 +363,12 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
             await order.save()
             pay_url = res["url"]
             msg = await callback.message.answer(
-                t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
+                t("stripe_payment_message"),
                 reply_markup=to_payment_kb(pay_url, t),
             )
-            await asyncio.sleep(40)
+            await asyncio.sleep(300)
             await bot.delete_message(chat_id=order.user.id, message_id=msg.message_id)
 
-        # Если параллельно поддерживаешь Cryptomus — снимай комментарий и добавляй аналогичный блок
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
             description = t("crypto_payment_alert")
@@ -404,7 +404,8 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
 
             await callback.message.answer(
                 t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
-                reply_markup=to_payment_kb(pay_url, t))
+                reply_markup=to_payment_kb(pay_url, t),
+            )
 
         else:
             # неизвестный способ оплаты
