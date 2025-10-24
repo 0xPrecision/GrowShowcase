@@ -66,7 +66,8 @@ async def start_cmd(message: Message, command: CommandObject, t, state: FSMConte
                     reply_markup=main_menu(t),
                 )
                 await state.update_data(main_message_id=msg.message_id)
-
+        if order.status in ("paid", "cancelled", "failed", "expired"):
+            await state.clear()
         return
 
     await state.clear()

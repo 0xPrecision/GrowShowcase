@@ -1,5 +1,7 @@
 import asyncio
 import os
+
+from aiogram.fsm.storage.redis import RedisStorage
 from dotenv import load_dotenv
 
 from aiogram import F, Router
@@ -42,6 +44,8 @@ from utils.user_utils.user_orders_utils import show_order_summary
 
 router = Router()
 load_dotenv()
+REDIS_URL=os.getenv("REDIS_URL")
+storage = RedisStorage.from_url(REDIS_URL)
 
 
 @router.callback_query(lambda c: c.data in ["menu_offers", "menu_main"])
@@ -391,7 +395,6 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                     t("user_checkout.messages.oshibka-pri-sozdanii-platezha"),
                     reply_markup=cart_back_menu(t),
                 )
-                await state.clear()
                 await callback.answer()
                 return
 
@@ -399,10 +402,11 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
             order.txid = str(invoice_uuid)
             await order.save()
 
-            await callback.message.answer(
+            msg = await callback.message.answer(
                 t("user_checkout.messages.perenapravlyaem-na-oplatu_stripe"),
                 reply_markup=to_payment_kb(pay_url, t),
             )
+            await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
 
         else:
             # неизвестный способ оплаты
@@ -415,18 +419,18 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
             await callback.answer()
             return
 
-    except Exception as e:
+    except Exception:
         # не удалось создать платёжную сессию
         msg = await callback.message.answer(
             t("user_checkout.messages.oshibka-pri-sozdanii-platezha"),
             reply_markup=cart_back_menu(t),
         )
         await state.update_data(main_message_id=msg.message_id)
-        await state.clear()
         await callback.answer()
         return
 
-    await state.clear()
+    await state.update_data(order_uid=order.order_uid, awaiting_payment=True)
+    await callback.answer()
 
 
 @router.callback_query(F.data == "cancel_order")

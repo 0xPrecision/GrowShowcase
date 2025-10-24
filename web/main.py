@@ -232,6 +232,13 @@ async def webhook_stripe(request: Request):
 
             order.status = "paid"
             await order.save()
+            try:
+                mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+                if mid:
+                    await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
+                    await storage.redis.delete(f"paymsg:{order.order_uid}")
+            except Exception:
+                pass
 
             if not order.notified_paid:
                 order.notified_paid = True
@@ -290,7 +297,14 @@ async def cancel(order_id: str = "", sig: str = ""):
         # редиректим в бота, чтобы не зависать на пустой странице
         return _tg_redirect_html(BOT_USERNAME, order_id)
 
-    # не спорим с успешной оплатой
+    try:
+        mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+        if mid:
+            await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
+            await storage.redis.delete(f"paymsg:{order.order_uid}")
+    except Exception:
+        pass
+        # не спорим с успешной оплатой
     if order.status != "paid":
         order.status = "cancelled"
 
