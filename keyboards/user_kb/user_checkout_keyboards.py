@@ -1,3 +1,5 @@
+from typing import Optional, Callable
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
@@ -26,24 +28,37 @@ def confirm_test_order_kb(t):
     )
 
 
-def after_cancellation_kb(t):
+def after_cancellation_kb(
+        *,
+        t: Optional[Callable[[str], str]] = None,
+        text_contact: Optional[str] = None,
+        text_plans: Optional[str] = None,
+        text_menu: Optional[str] = None
+):
+    if t is not None:
+        text_contact = t("contact_me")
+        text_plans = t("user_cart_keyboards.buttons.v-katalog")
+        text_menu = t("order_keyboards.buttons.v-glavnoe-menyu")
+    else:
+        if not text_contact or not text_plans or not text_menu:
+            raise ValueError("Either provide t or both text_order and text_menu")
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=t("contact_me"),
+                    text=text_contact,
                     url="https://t.me/TGStoreLab",
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=t("user_cart_keyboards.buttons.v-katalog"),
+                    text=text_plans,
                     callback_data="menu_offers",
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text=t("order_keyboards.buttons.v-glavnoe-menyu"),
+                    text=text_menu,
                     callback_data="menu_main",
                 )
             ],

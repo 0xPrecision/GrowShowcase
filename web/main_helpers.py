@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from config_data.bot_instance import bot
 from database.models import Order
 from keyboards.user_kb.order_keyboards import order_details_keyboard
+from keyboards.user_kb.user_checkout_keyboards import after_cancellation_kb
 from services.i18n.bridge import pick_locale, use_locale, tr
 
 load_dotenv()
@@ -130,10 +131,16 @@ async def _notify_user_cancel(order_id: int):
     )
     with use_locale(loc):
         text_user = tr(
-            "user_checkout.messages.oplata_otmenena", order_id=order.order_uid
-        )
+            "user_checkout.messages.oplata_otmenena")
+        text_contact = tr("contact_me")
+        text_plans = tr("user_cart_keyboards.buttons.v-katalog")
+        text_menu = tr("order_keyboards.buttons.v-glavnoe-menyu")
     try:
-        await bot.send_message(chat_id=order.user.id, text=text_user)
+        await bot.send_message(chat_id=order.user.id,
+                               text=text_user,
+                               reply_markup=after_cancellation_kb(text_contact=text_contact,
+                                                                  text_plans=text_plans,
+                                                                  text_menu=text_menu))
     except Exception as e:
         log.exception("Stripe cancel notify failed: %s", e)
     try:

@@ -33,7 +33,7 @@ async def show_orders_menu(
     orders = await get_orders(user_id)
 
     if not orders:
-        await callback.message.answer(msg_text, reply_markup=after_cancellation_kb(t))
+        await callback.message.answer(msg_text, reply_markup=after_cancellation_kb(t=t))
         return
 
     text = t("orders.list.header")

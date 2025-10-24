@@ -438,7 +438,7 @@ async def cancel_order(callback: CallbackQuery, t, state: FSMContext, **_):
     user_id = callback.from_user.id
     await callback.message.edit_text(
         t("user_checkout.messages.oformlenie-zakaza-otmeneno"),
-        reply_markup=after_cancellation_kb(t),
+        reply_markup=after_cancellation_kb(t=t),
     )
     await clear_cart(user_id)
     await state.clear()

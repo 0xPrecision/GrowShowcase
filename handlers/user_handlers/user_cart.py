@@ -98,7 +98,7 @@ async def cancel_or_not(callback: CallbackQuery, state: FSMContext, t):
         await bot.send_message(
             user_id,
             t("user_cart.messages.vasha-korzina-pusta"),
-            reply_markup=after_cancellation_kb(t),
+            reply_markup=after_cancellation_kb(t=t),
         )
     else:
         data = await state.get_data()

@@ -55,7 +55,7 @@ async def start_cmd(message: Message, command: CommandObject, t, state: FSMConte
             ):
                 msg = await message.answer(
                     t("user_checkout.messages.oformlenie-zakaza-otmeneno"),
-                    reply_markup=after_cancellation_kb(t),
+                    reply_markup=after_cancellation_kb(t=t),
                 )
                 order.notified_cancel = True
                 await order.save()
