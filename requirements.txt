@@ -2,7 +2,7 @@ aiogram
 fastapi
 uvicorn[standard]
 httpx
-aerich
+aerich==0.9.2
 python-dotenv
 tortoise-orm
 aiosqlite
