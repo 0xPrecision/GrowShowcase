@@ -1,4 +1,3 @@
-import asyncio
 import os
 
 from aiogram.fsm.storage.redis import RedisStorage
@@ -8,7 +7,6 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from config_data.bot_instance import bot
 from constants import EMOJI_MAP
 from database.crud import (
     create_order,
@@ -370,8 +368,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 t("stripe_payment_message"),
                 reply_markup=to_payment_kb(pay_url, t),
             )
-            await asyncio.sleep(300)
-            await bot.delete_message(chat_id=order.user.id, message_id=msg.message_id)
+            await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
 
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
