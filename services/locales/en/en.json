@@ -1,5 +1,5 @@
 {
-  "stripe_payment_message": "DEMO CARD PAYMENT\nNo charges will be made. Test card: 4242 4242 4242 4242\nExpiry: any future month/year, CVC: 123.\nBy continuing, you will be redirected to Stripe’s test checkout.",
+  "stripe_payment_message": "DEMO CARD PAYMENT\n\nTo pay, use the demo card:\nCard: 4242 4242 4242 4242\nExp: any future month/year\nCVC: 123\n\n✅ Continuing will open Stripe’s test checkout.",
   "skip_comment": "▶️ Skip",
   "crypto_payment_alert": "Discounted price to offset possible network/withdrawal fees. Your wallet/exchange may add its own fee. You don’t need to add extra on this page.",
   "user_checkout.messages.oplata_otmenena": "🚫 Payment canceled. Order {order_id} was not charged. You can return to the menu and try again.",
