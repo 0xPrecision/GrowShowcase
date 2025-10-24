@@ -2,6 +2,8 @@ import os, json, base64, hashlib, httpx
 from typing import Dict, Optional
 from dotenv import load_dotenv
 
+from web.main_helpers import make_urls
+
 load_dotenv()
 
 
@@ -28,14 +30,13 @@ class CryptomusGateway:
         title: Optional[str] = None,
         to_currency: Optional[str] = None,  # например "USDT"
         network: Optional[str] = None,  # например "tron"
-        url_success: Optional[str] = None,
-        url_return: Optional[str] = None,
         url_callback: Optional[str] = None,
         lifetime: int = 3600,
         subtract: Optional[int] = 0,  # 0..100 — процент комиссии на клиента
         additional_data: Optional[str] = None,
     ) -> Dict[str, str]:
         # Собираем тело по их названиям полей
+        success_url, cancel_url = make_urls(order_uid=order_id)
         payload: Dict[str, object] = {
             "amount": str(amount),
             "currency": currency.upper(),
@@ -43,8 +44,8 @@ class CryptomusGateway:
             "description": title,
             "to_currency": to_currency,
             "network": network,  # для инвойса сеть указывается строчно ("tron")
-            "url_success": url_success,
-            "url_return": url_return,
+            "url_success": success_url,
+            "url_return": cancel_url,
             "url_callback": url_callback,
             "lifetime": lifetime,
             "subtract": subtract,

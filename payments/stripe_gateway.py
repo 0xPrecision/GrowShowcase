@@ -3,7 +3,7 @@ import stripe
 from typing import Dict, Optional, List
 from uuid import uuid4
 
-from web.main_helpers import make_stripe_urls
+from web.main_helpers import make_urls
 
 
 class StripeGateway:
@@ -71,7 +71,7 @@ class StripeGateway:
         Создает Stripe Checkout Session с детальным чеком.
         Возвращает url/session_id/payment_intent/customer.
         """
-        success_url, cancel_url = make_stripe_urls(order_uid=order_id)
+        success_url, cancel_url = make_urls(order_uid=order_id)
         if not success_url or not cancel_url:
             raise RuntimeError("PAY_SUCCESS_URL/PAY_CANCEL_URL not set")
 
@@ -128,8 +128,8 @@ class StripeGateway:
 
         params = dict(
             mode="payment",
-            success_url=f"{success_url}?order_id={order_id}",
-            cancel_url=f"{cancel_url}?order_id={order_id}",
+            success_url=success_url,
+            cancel_url=cancel_url,
             line_items=line_items,
             customer_email=email,
             # клонируем в PI, чтобы ловить order_id и в payment_intent.succeeded

@@ -63,7 +63,7 @@ def _append_query(url: str, params: dict) -> str:
     return urlunparse(parts)
 
 
-def make_stripe_urls(order_uid: str) -> tuple[str, str]:
+def make_urls(order_uid: str) -> tuple[str, str]:
     sig = _sign(order_uid)
     success_url = _append_query(PAY_SUCCESS_URL, {"order_id": order_uid, "sig": sig})
     cancel_url = _append_query(PAY_CANCEL_URL, {"order_id": order_uid, "sig": sig})

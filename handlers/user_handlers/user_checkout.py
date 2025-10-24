@@ -371,14 +371,11 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
 
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
-            description = t("crypto_payment_alert")
             cp = await cg.create_invoice(
                 amount="1.00",
                 currency=order.currency,  # "USD"
                 order_id=order.order_uid,
-                title=f"{order.name or "Order"}\n{description}",
-                url_success=f"{os.getenv('PAY_SUCCESS_URL')}?order_id={order.order_uid}",
-                url_return=f"{os.getenv('PAY_CANCEL_URL')}?order_id={order.order_uid}",
+                title=f"{order.name or "Order"}",
                 url_callback=f"{os.getenv('TELEGRAM_WEBHOOK_URL')}/webhook/cryptomus",
             )
 
