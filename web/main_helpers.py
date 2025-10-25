@@ -97,6 +97,7 @@ async def _notify_user_success(order_id: int):
             total=order.total_price,
             currency="$",
             comment=order.comment,
+            provider=order.provider
         )
 
     try:
@@ -147,7 +148,10 @@ async def _notify_user_cancel(order_id: int):
         if admin_id:
             await bot.send_message(
                 chat_id=admin_id,
-                text=f"⚠️ CANCELED {order.provider} [{order.order_uid}] user {order.user.id}",
+                text=f"⚠️ CANCELED "
+                     f"{order.provider} "
+                     f"[{order.order_uid}] "
+                     f"user {order.user.username if order.user.username else order.user.id}",
             )
     except Exception as e:
         log.exception("Notify admin failed for order_uid=%s: %s", order.order_uid, e)

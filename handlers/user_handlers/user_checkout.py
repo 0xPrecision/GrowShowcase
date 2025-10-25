@@ -370,6 +370,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 reply_markup=to_payment_kb(pay_url, t),
             )
             await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
+            await state.update_data(main_message_id=msg.message_id)
 
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
@@ -405,6 +406,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 reply_markup=to_payment_kb(pay_url, t),
             )
             await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
+            await state.update_data(main_message_id=msg.message_id)
         else:
             # неизвестный способ оплаты
             msg = await callback.message.answer(
