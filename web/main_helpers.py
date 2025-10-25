@@ -137,7 +137,6 @@ async def _notify_user_cancel(order_id: int):
         text_plans = tr("user_cart_keyboards.buttons.v-katalog")
         text_menu = tr("order_keyboards.buttons.v-glavnoe-menyu")
     try:
-
         await bot.send_message(chat_id=order.user.id,
                                text=text_user,
                                reply_markup=after_cancellation_kb(text_contact=text_contact,

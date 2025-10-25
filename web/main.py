@@ -73,6 +73,7 @@ TELEGRAM_WEBHOOK_URL = WEBHOOK_BASE.rstrip("/") + TELEGRAM_WEBHOOK_PATH
 # -------------------------
 storage = RedisStorage.from_url(REDIS_URL)
 dp = Dispatcher(storage=storage)
+log.info("REDIS_URL=%s", os.getenv("REDIS_URL"))
 
 # i18n
 translator = Translator(

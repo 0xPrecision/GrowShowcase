@@ -1,3 +1,4 @@
+import logging
 import os
 
 from aiogram.fsm.storage.redis import RedisStorage
@@ -39,11 +40,12 @@ from utils.user_utils.user_checkout_utils import (
 from utils.user_utils.user_common_utils import start_manual_checkout
 from utils.user_utils.user_orders_utils import show_order_summary
 
-
 router = Router()
 load_dotenv()
 REDIS_URL=os.getenv("REDIS_URL")
 storage = RedisStorage.from_url(REDIS_URL)
+log = logging.getLogger("web")
+log.info("REDIS_URL=%s", os.getenv("REDIS_URL"))
 
 
 @router.callback_query(lambda c: c.data in ["menu_offers", "menu_main"])
