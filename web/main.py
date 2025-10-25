@@ -232,15 +232,6 @@ async def webhook_stripe(request: Request):
 
             order.status = "paid"
             await order.save()
-            try:
-                await order.fetch_related("user")
-                mid = await storage.redis.get(f"paymsg:{order.order_uid}")
-                log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
-                if mid:
-                    await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
-                    await storage.redis.delete(f"paymsg:{order.order_uid}")
-            except Exception as exc:
-                log.warning("delete paymsg failed (success): %s", exc)
 
             if not order.notified_paid:
                 order.notified_paid = True
@@ -285,7 +276,16 @@ async def webhook_stripe(request: Request):
 async def success(order_id: str = "", sig: str = ""):
     if not _verify(order_id, sig):
         return PlainTextResponse("bad signature", status_code=400)
-        # никаких уведомлений и флагов — истина придёт через вебхук
+    try:
+        order = await Order.get_or_none(order_uid=order_id)
+        await order.fetch_related("user")
+        mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+        log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
+        if mid:
+            await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
+            await storage.redis.delete(f"paymsg:{order.order_uid}")
+    except Exception as exc:
+        log.warning("delete paymsg failed (success): %s", exc)
     return _tg_redirect_html(BOT_USERNAME, order_id)
 
 
@@ -434,15 +434,6 @@ async def webhook_cryptomus(request: Request):
 
                 order.status = "paid"
                 await order.save()
-                try:
-                    await order.fetch_related("user")
-                    mid = await storage.redis.get(f"paymsg:{order.order_uid}")
-                    log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
-                    if mid:
-                        await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
-                        await storage.redis.delete(f"paymsg:{order.order_uid}")
-                except Exception as exc:
-                    log.warning("delete paymsg failed (success): %s", exc)
 
             if not order.notified_paid:
                 order.notified_paid = True

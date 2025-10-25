@@ -25,10 +25,9 @@ async def start_cmd(message: Message, command: CommandObject, t, state: FSMConte
     ]  # сюда прилетит твой order_uid (или токен)
 
     if payload:
-        await delete_request_and_user_message(message, state)
-
         order = await Order.get_or_none(order_uid=payload)
         if not order:
+            await delete_request_and_user_message(message, state)
             msg = await message.answer(
                 t("user_common.messages.b-dobro-pozhalovat-v-magazin-b"),
                 reply_markup=main_menu(t),
@@ -61,11 +60,7 @@ async def start_cmd(message: Message, command: CommandObject, t, state: FSMConte
                 await order.save()
                 await state.update_data(main_message_id=msg.message_id)
             else:
-                msg = await message.answer(
-                    t("user_common.messages.b-dobro-pozhalovat-v-magazin-b"),
-                    reply_markup=main_menu(t),
-                )
-                await state.update_data(main_message_id=msg.message_id)
+                pass
         if order.status in ("paid", "cancelled", "failed", "expired"):
             await state.clear()
         return
