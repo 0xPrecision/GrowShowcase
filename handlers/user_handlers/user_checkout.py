@@ -373,26 +373,25 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
             await state.update_data(main_message_id=msg.message_id)
 
         elif payment_method == "pay_crypto":
-            try:
-                cg = CryptomusGateway()
-                cp = await cg.create_invoice(
-                    amount="0.02",
-                    currency=order.currency,  # "USD"
-                    order_id=order.order_uid,
-                    title=f"{order.name or "Order"}",
-                    url_callback=f"{os.getenv('TELEGRAM_WEBHOOK_URL')}/webhook/cryptomus",
-                )
+            cg = CryptomusGateway()
+            cp = await cg.create_invoice(
+                amount="0.02",
+                currency=order.currency,  # "USD"
+                to_currency="TON",
+                network="TON",
+                order_id=order.order_uid,
+                title=f"{order.name or "Order"}",
+                url_callback=f"{os.getenv('TELEGRAM_WEBHOOK_URL')}/webhook/cryptomus",
+            )
 
-                pay_url = cp.get("url") or cp.get("result", {}).get("url")
-                invoice_uuid = (
-                    cp.get("uuid")
-                    or cp.get("payment_id")
-                    or cp.get("result", {}).get("uuid")
-                )
+            pay_url = cp.get("url") or cp.get("result", {}).get("url")
+            invoice_uuid = (
+                cp.get("uuid")
+                or cp.get("payment_id")
+                or cp.get("result", {}).get("uuid")
+            )
 
-            # if not pay_url or not invoice_uuid:
-            except Exception as e:
-                log.exception("Cryptomus create_invoice error: %s", e)
+            if not pay_url or not invoice_uuid:
                 await callback.message.answer(
                     t("user_checkout.messages.oshibka-pri-sozdanii-platezha"),
                     reply_markup=cart_back_menu(t),
