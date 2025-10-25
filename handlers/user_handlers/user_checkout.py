@@ -375,7 +375,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
             cp = await cg.create_invoice(
-                amount="0.02",
+                amount="0.05",
                 currency=order.currency,  # "USD"
                 to_currency="TON",
                 network="TON",
