@@ -233,10 +233,6 @@ async def webhook_stripe(request: Request):
             order.status = "paid"
             await order.save()
 
-            if not order.notified_paid:
-                order.notified_paid = True
-                await order.save()
-                asyncio.create_task(_notify_user_success(order.id))
 
         elif etype == "payment_intent.succeeded":
             order.provider = "stripe"
@@ -244,10 +240,6 @@ async def webhook_stripe(request: Request):
             order.status = "paid"
             await order.save()
 
-            if not order.notified_paid:
-                order.notified_paid = True
-                await order.save()
-                asyncio.create_task(_notify_user_success(order.id))
 
         elif etype == "payment_intent.payment_failed":
             if order.status != "paid":
@@ -261,7 +253,6 @@ async def webhook_stripe(request: Request):
                 await order.save()
 
         else:
-            # остальные типы тебе не нужны
             pass
 
     except Exception as e:
@@ -276,16 +267,20 @@ async def webhook_stripe(request: Request):
 async def success(order_id: str = "", sig: str = ""):
     if not _verify(order_id, sig):
         return PlainTextResponse("bad signature", status_code=400)
+    order = await Order.get_or_none(order_uid=order_id)
     try:
-        order = await Order.get_or_none(order_uid=order_id)
         await order.fetch_related("user")
         mid = await storage.redis.get(f"paymsg:{order.order_uid}")
-        log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
         if mid:
             await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
             await storage.redis.delete(f"paymsg:{order.order_uid}")
     except Exception as exc:
         log.warning("delete paymsg failed (success): %s", exc)
+
+    if not order.notified_paid:
+        order.notified_paid = True
+        await order.save()
+        asyncio.create_task(_notify_user_success(order.id))
     return _tg_redirect_html(BOT_USERNAME, order_id)
 
 
@@ -302,7 +297,6 @@ async def cancel(order_id: str = "", sig: str = ""):
 
     try:
         mid = await storage.redis.get(f"paymsg:{order.order_uid}")
-        log.info("paymsg pop (cancel): uid=%s -> %s", order.order_uid, mid)
         if mid:
             await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
             await storage.redis.delete(f"paymsg:{order.order_uid}")
