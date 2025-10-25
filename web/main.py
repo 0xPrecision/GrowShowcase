@@ -235,11 +235,12 @@ async def webhook_stripe(request: Request):
             await order.save()
             try:
                 mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+                log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
                 if mid:
                     await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
                     await storage.redis.delete(f"paymsg:{order.order_uid}")
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("delete paymsg failed (success): %s", exc)
 
             if not order.notified_paid:
                 order.notified_paid = True
@@ -300,11 +301,12 @@ async def cancel(order_id: str = "", sig: str = ""):
 
     try:
         mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+        log.info("paymsg pop (cancel): uid=%s -> %s", order.order_uid, mid)
         if mid:
             await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
             await storage.redis.delete(f"paymsg:{order.order_uid}")
-    except Exception:
-        pass
+    except Exception as exc:
+        log.warning("delete paymsg failed (cancel): %s", exc)
         # не спорим с успешной оплатой
     if order.status != "paid":
         order.status = "cancelled"

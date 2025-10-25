@@ -406,7 +406,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 reply_markup=to_payment_kb(pay_url, t),
             )
             await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
-
+            log.info("save paymsg: uid=%s chat=%s mid=%s", order.order_uid, callback.message.chat.id, msg.message_id)
         else:
             # неизвестный способ оплаты
             msg = await callback.message.answer(
