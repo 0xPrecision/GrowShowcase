@@ -73,7 +73,6 @@ TELEGRAM_WEBHOOK_URL = WEBHOOK_BASE.rstrip("/") + TELEGRAM_WEBHOOK_PATH
 # -------------------------
 storage = RedisStorage.from_url(REDIS_URL)
 dp = Dispatcher(storage=storage)
-log.info("REDIS_URL=%s", os.getenv("REDIS_URL"))
 
 # i18n
 translator = Translator(
@@ -234,6 +233,7 @@ async def webhook_stripe(request: Request):
             order.status = "paid"
             await order.save()
             try:
+                await order.fetch_related("user")
                 mid = await storage.redis.get(f"paymsg:{order.order_uid}")
                 log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
                 if mid:
@@ -295,6 +295,7 @@ async def cancel(order_id: str = "", sig: str = ""):
         return PlainTextResponse("bad signature", status_code=400)
 
     order = await Order.get_or_none(order_uid=order_id)
+    await order.fetch_related("user")
     if not order:
         # редиректим в бота, чтобы не зависать на пустой странице
         return _tg_redirect_html(BOT_USERNAME, order_id)
@@ -433,6 +434,15 @@ async def webhook_cryptomus(request: Request):
 
                 order.status = "paid"
                 await order.save()
+                try:
+                    await order.fetch_related("user")
+                    mid = await storage.redis.get(f"paymsg:{order.order_uid}")
+                    log.info("paymsg pop (success): uid=%s -> %s", order.order_uid, mid)
+                    if mid:
+                        await bot.delete_message(chat_id=order.user.id, message_id=int(mid))
+                        await storage.redis.delete(f"paymsg:{order.order_uid}")
+                except Exception as exc:
+                    log.warning("delete paymsg failed (success): %s", exc)
 
             if not order.notified_paid:
                 order.notified_paid = True

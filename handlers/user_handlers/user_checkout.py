@@ -45,7 +45,6 @@ load_dotenv()
 REDIS_URL=os.getenv("REDIS_URL")
 storage = RedisStorage.from_url(REDIS_URL)
 log = logging.getLogger("web")
-log.info("REDIS_URL=%s", os.getenv("REDIS_URL"))
 
 
 @router.callback_query(lambda c: c.data in ["menu_offers", "menu_main"])
@@ -371,6 +370,7 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 reply_markup=to_payment_kb(pay_url, t),
             )
             await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
+            log.info("save paymsg: uid=%s chat=%s mid=%s", order.order_uid, callback.message.chat.id, msg.message_id)
 
         elif payment_method == "pay_crypto":
             cg = CryptomusGateway()
@@ -406,7 +406,6 @@ async def order_confirm_handler(callback: CallbackQuery, t, state: FSMContext, *
                 reply_markup=to_payment_kb(pay_url, t),
             )
             await storage.redis.setex(f"paymsg:{order.order_uid}", 86400, msg.message_id)
-            log.info("save paymsg: uid=%s chat=%s mid=%s", order.order_uid, callback.message.chat.id, msg.message_id)
         else:
             # неизвестный способ оплаты
             msg = await callback.message.answer(
