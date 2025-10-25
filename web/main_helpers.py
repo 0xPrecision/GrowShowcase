@@ -4,7 +4,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from urllib.parse import quote, urlparse, parse_qsl, urlencode, urlunparse
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
 from fastapi.responses import HTMLResponse
 
@@ -28,9 +28,8 @@ if not PAY_SUCCESS_URL or not PAY_CANCEL_URL:
 
 
 def _tg_redirect_html(bot_username: str, payload: str) -> HTMLResponse:
-    payload_q = quote(payload or "")
-    tg_deeplink = f"tg://resolve?domain={bot_username}&start={payload_q}"
-    https_fallback = f"https://t.me/{bot_username}?start={payload_q}"
+    tg_deeplink = f"tg://resolve?domain={bot_username}"
+    https_fallback = f"https://t.me/{bot_username}"
     html = f"""<!doctype html><html><head>
     <meta charset="utf-8"><title>Redirecting…</title>
     <meta http-equiv="refresh" content="0; url={tg_deeplink}">
@@ -113,8 +112,7 @@ async def _notify_user_success(order_id: int):
         log.exception("User notify failed for order_uid=%s: %s", order.order_uid, e)
 
     try:
-        raw_gid = os.getenv("GROUP_ID", "")
-        admin_id = int(raw_gid) if raw_gid.isdigit() else None
+        admin_id = os.getenv("GROUP_ID", "")
         if admin_id:
             await bot.send_message(chat_id=admin_id, text=text_admin)
     except Exception as e:
@@ -145,12 +143,11 @@ async def _notify_user_cancel(order_id: int):
     except Exception as e:
         log.exception("Stripe cancel notify failed: %s", e)
     try:
-        raw_gid = os.getenv("GROUP_ID", "")
-        admin_id = int(raw_gid) if raw_gid.isdigit() else None
+        admin_id = os.getenv("GROUP_ID", "")
         if admin_id:
             await bot.send_message(
                 chat_id=admin_id,
-                text=f"⚠️ CANCELED [Stripe] [{order.order_uid}] user {order.user.id}",
+                text=f"⚠️ CANCELED {order.provider} [{order.order_uid}] user {order.user.id}",
             )
     except Exception as e:
         log.exception("Notify admin failed for order_uid=%s: %s", order.order_uid, e)
