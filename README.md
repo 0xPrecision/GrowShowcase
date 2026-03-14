@@ -1,5 +1,28 @@
 # GrowShowcase
 
+---
+
+![Python](https://img.shields.io/badge/Python-3.12+-blue?logo=python)
+![Aiogram](https://img.shields.io/badge/Aiogram-Telegram%20bot-2CA5E0?logo=telegram)
+![FastAPI](https://img.shields.io/badge/FastAPI-webhook%20service-009688?logo=fastapi)
+![Tortoise ORM](https://img.shields.io/badge/Tortoise%20ORM-database-6A5ACD)
+![Redis](https://img.shields.io/badge/Redis-state%20storage-DC382D?logo=redis)
+![Stripe](https://img.shields.io/badge/Stripe-payments-635BFF?logo=stripe)
+![Cryptomus](https://img.shields.io/badge/Cryptomus-crypto%20payments-2F6BFF)
+![Docker](https://img.shields.io/badge/Docker-containerized-2496ED?logo=docker)
+![Status](https://img.shields.io/badge/status-in%20development-yellow)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+**Инструменты разработки:**
+
+![Aerich](https://img.shields.io/badge/migrations-aerich-7A4CC2)
+![Gunicorn](https://img.shields.io/badge/server-gunicorn-499848)
+![Uvicorn](https://img.shields.io/badge/ASGI-uvicorn-4B8BBE)
+![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions)
+![Docker Compose](https://img.shields.io/badge/orchestration-Docker%20Compose-2496ED?logo=docker)
+
+---
+
 > Telegram-витрина в формате двуязычного бота с каталогом, корзиной, оформлением заказов, административной панелью и интеграцией онлайн-оплаты через Stripe и Cryptomus.
 
 ## Обзор проекта
@@ -244,3 +267,12 @@ Docker Compose поднимает отдельные сервисы для Teleg
 GrowShowcase — это портфолио-проект, который демонстрирует практический подход к разработке Telegram-ботов с каталогом, оформлением заказов, административной частью, веб-сервисом для webhook и интеграцией платёжных систем.
 
 Проект показывает умение проектировать структуру приложения, разделять зоны ответственности, работать с базой данных, внешними сервисами и готовить решение к развёртыванию в контейнерной среде.
+
+## Контакты
+
+- Telegram: [@OxPrecision](https://t.me/OxPrecision)
+- Email: wrkfrvr@gmail.com
+
+---
+
+© 2025 Nikita OxPrecision. All rights reserved.
