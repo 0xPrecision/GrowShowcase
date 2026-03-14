@@ -132,7 +132,7 @@ migrations/         # миграции базы данных
 ### Клонирование репозитория
 
 ```bash
-git clone https://github.com/0xPrecision/Gr_showcase.git
+git clone https://github.com/0xPrecision/GrowShowcase.git
 cd GrowShowcase
 ```
 
